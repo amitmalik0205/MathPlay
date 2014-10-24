@@ -32,10 +32,13 @@ import com.qait.mathplay.dao.domain.SecurityQuestion;
 import com.qait.mathplay.dao.domain.User;
 import com.qait.mathplay.dto.CreateGroupResponseDTO;
 import com.qait.mathplay.dto.GameDetailsDTO;
+import com.qait.mathplay.dto.GetInvitationsDTO;
 import com.qait.mathplay.dto.GroupDTO;
 import com.qait.mathplay.dto.GroupMemberDTO;
 import com.qait.mathplay.dto.GroupMemberInfoDTO;
+import com.qait.mathplay.dto.GroupScoreDTO;
 import com.qait.mathplay.dto.RecoverPasswordDTO;
+import com.qait.mathplay.dto.UpdateInvitationStatusDTO;
 import com.qait.mathplay.service.IGameDetailsService;
 import com.qait.mathplay.service.IGameService;
 import com.qait.mathplay.service.IGroupMemberService;
@@ -43,6 +46,7 @@ import com.qait.mathplay.service.IGroupService;
 import com.qait.mathplay.service.ISecurityQuestionService;
 import com.qait.mathplay.service.IUserService;
 import com.qait.mathplay.util.MathPlayNLearnUtil;
+import com.qait.mathplay.util.MathPlayPropertiesFileReaderUtil;
 
 @Component
 @Path("math-play-service")
@@ -533,6 +537,154 @@ public class MathPlayService {
 			e.printStackTrace();
 			response.setCode("deleteGroup003");
 			response.setMessage(msgConfig.getProperty("deleteGroup003"));
+			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
+			throw new WebApplicationException(Response.ok(response).build());
+		}
+		return Response.ok(response).build();
+	}
+	
+	@POST
+	@Path("get-group-score")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response getGroupScore(GroupScoreDTO dto) {
+		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
+		List<Object[]> list = null;
+
+		try {
+			Game savedGame = gameService.getGameByNameAndClass(
+					dto.getGameName(), dto.getGameClass());
+
+			if (savedGame != null) {
+				list = detailsService.getScoreForGroup(dto.getGroupID(),
+						savedGame.getGameId());
+			} else {
+				response.setCode("getGroupScore001");
+				response.setMessage(msgConfig.getProperty("getGroupScore001"));
+
+				return Response.ok(response).build();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setCode("getGroupScore002");
+			response.setMessage(msgConfig.getProperty("getGroupScore002"));
+			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
+			throw new WebApplicationException(Response.ok(response).build());
+		}
+		return Response.ok(list).build();
+	}
+	
+	@GET
+	@Path("group-list-for-member/{userID}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response getGroupListForMember(@PathParam("userID") String userID) {
+		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
+		List<GroupDTO> list  = null;
+		try {
+			list = groupService.getGroupListForMember(userID);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setCode("getMemberGroupList001");
+			response.setMessage(msgConfig.getProperty("getMemberGroupList001"));
+			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
+			throw new WebApplicationException(Response.ok(response).build());
+		}
+		return Response.ok(list).build();
+	}
+	
+	@GET
+	@Path("get-total-user-score/{groupID}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response getTotalScoreForUser(@PathParam("groupID") long groupID) {
+		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
+		List<Object[]> list = null;
+		try {
+			list = detailsService.getTotalScoreForUser(groupID);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setCode("getTotalUserScore001");
+			response.setMessage(msgConfig.getProperty("getTotalUserScore001"));
+			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
+			throw new WebApplicationException(Response.ok(response).build());
+		}
+		return Response.ok(list).build();
+	}
+	
+	@GET
+	@Path("get-invitations/{userID}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response getInvitations(@PathParam("userID") String userID) {
+		List<GetInvitationsDTO> list = null;
+		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
+		try {
+
+			list = memberService.getGroupInvitationsForUser(userID);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setCode("getInvitations001");
+			response.setMessage(msgConfig.getProperty("getInvitations001"));
+			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
+			throw new WebApplicationException(Response.ok(response).build());
+		}
+		return Response.ok(list).build();
+	}
+	
+	@GET
+	@Path("get-invitation-count/{userID}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response getInvitationCount(@PathParam("userID") String userID) {
+		Long count = null;
+		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
+		try {
+			count = memberService.getInvitationCount(userID);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setCode("getInvitationcount001");
+			response.setMessage(msgConfig.getProperty("getInvitationcount001"));
+			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
+			throw new WebApplicationException(Response.ok(response).build());
+		}
+		return Response.ok(count).build();
+	}
+	
+	@POST
+	@Path("update-invitation-status")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional(rollbackFor = Exception.class)
+	public Response updateInvitationStatus(UpdateInvitationStatusDTO dto) {
+		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
+		response.setCode("updateInvitationStatus003");
+		response.setMessage(msgConfig.getProperty("updateInvitationStatus003"));
+		
+		try {
+			GroupMember member = memberService.getGroupMemberByID(dto.getGroupID(),
+					dto.getMemberID());
+			if (member == null) {
+				response.setCode("updateInvitationStatus002");
+				response.setMessage(msgConfig.getProperty("updateInvitationStatus002"));
+				
+			} else {
+				member.setStatus(dto.getStatus());
+				memberService.saveOrUpdate(member);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setCode("updateInvitationStatus001");
+			response.setMessage(msgConfig.getProperty("updateInvitationStatus001"));
 			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
 			throw new WebApplicationException(Response.ok(response).build());
 		}

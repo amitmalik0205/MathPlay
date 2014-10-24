@@ -31,6 +31,7 @@ public class GroupDaoImpl extends GenericDaoImpl<Group> implements IGroupDao {
 	}
 	
 	@Override
+	@SuppressWarnings("unchecked")
 	public List<Group> getGroupListForOwner(String ownerID) {
 		Session session = getCurrentSession();
 		List<Group> list = new ArrayList<Group>();
@@ -61,10 +62,11 @@ public class GroupDaoImpl extends GenericDaoImpl<Group> implements IGroupDao {
 	}
 	
 	@Override
+	@SuppressWarnings("unchecked")
 	public List<GroupDTO> getGroupListForMember(String memberID) {
 		Session session = getCurrentSession();
 		List<GroupDTO> list = new ArrayList<GroupDTO>();
-		String queryString = "Select new com.qait.mathplaynlearn.dto.GroupDTO(g.groupID, g.groupName) from GroupMember gm "
+		String queryString = "Select new com.qait.mathplay.dto.GroupDTO(g.groupID, g.groupName) from GroupMember gm "
 				+ " join gm.group g join gm.member m join g.groupOwner u where u.userID <> :memberID "
 				+ " and m.userID = :memberID and gm.status <> :status";
 		Query query = session.createQuery(queryString);

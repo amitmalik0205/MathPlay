@@ -57,4 +57,9 @@ public class GroupMemberServiceImpl implements IGroupMemberService {
 	public Long getInvitationCount(String userID) {
 		return groupMemberDao.getInvitationCount(userID);
 	}
+	
+	@Override
+	public void saveOrUpdate(GroupMember member) {
+		groupMemberDao.saveOrUpdate(member);
+	}
 }

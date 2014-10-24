@@ -10,20 +10,13 @@ import org.springframework.stereotype.Repository;
 import com.qait.mathplay.dao.domain.GameDetails;
 
 @Repository("gameDetailsDao")
-public class GameDetailsDaoImpl extends GenericDaoImpl<GameDetails> implements IGameDetailsDao {
+public class GameDetailsDaoImpl extends GenericDaoImpl<GameDetails> implements
+		IGameDetailsDao {
 
 	public GameDetailsDaoImpl() {
 		super(GameDetails.class);
 	}
-	
-/*	@Override
-	public boolean saveGameDetails(GameDetails details) {
-		boolean isSaved = true;
-		Session session = getCurrentSession();
-		session.saveOrUpdate(details);
-		return isSaved;
-	}*/
-	
+
 	@Override
 	public GameDetails getGameDetailsByUserAndGame(Long userID, Long gameId) {
 		Session session = getCurrentSession();
@@ -32,16 +25,17 @@ public class GameDetailsDaoImpl extends GenericDaoImpl<GameDetails> implements I
 		Query query = session.createQuery(queryString);
 		query.setParameter("uid", userID);
 		query.setParameter("gameid", gameId);
-		details = (GameDetails)query.uniqueResult();
+		details = (GameDetails) query.uniqueResult();
 		return details;
 	}
-	
+
 	@Override
+	@SuppressWarnings("unchecked")
 	public List<Object[]> getScoreForGroup(long groupID, long gameID) {
 		List<Object[]> list = new ArrayList<Object[]>();
 		Session session = getCurrentSession();
-		String queryStr = "SELECT u.userID, gd.level, gd.userScore, gm.status from GroupMember gm JOIN gm.group g "+
-				"JOIN gm.member u JOIN u.gameDetails gd WHERE g.groupID = :gid and gd.game.gameId = :gameid "
+		String queryStr = "SELECT u.userID, gd.level, gd.userScore, gm.status from GroupMember gm JOIN gm.group g "
+				+ "JOIN gm.member u JOIN u.gameDetails gd WHERE g.groupID = :gid and gd.game.gameId = :gameid "
 				+ " ORDER BY gd.userScore DESC";
 		Query query = session.createQuery(queryStr);
 		query.setParameter("gid", groupID);
@@ -49,16 +43,17 @@ public class GameDetailsDaoImpl extends GenericDaoImpl<GameDetails> implements I
 		list = query.list();
 		return list;
 	}
-	
+
 	@Override
+	@SuppressWarnings("unchecked")
 	public List<Object[]> getTotalScoreForUser(long groupID) {
 		List<Object[]> list = new ArrayList<Object[]>();
 		Session session = getCurrentSession();
-		String queryStr = "SELECT u.userID, sum(gd.userScore) FROM GroupMember gm join gm.group g "+
-				"JOIN gm.member u JOIN u.gameDetails gd WHERE g.groupID = :gid GROUP BY u.userID ORDER BY sum(gd.userScore) DESC";
+		String queryStr = "SELECT u.userID, sum(gd.userScore) FROM GroupMember gm join gm.group g "
+				+ "JOIN gm.member u JOIN u.gameDetails gd WHERE g.groupID = :gid GROUP BY u.userID ORDER BY sum(gd.userScore) DESC";
 		Query query = session.createQuery(queryStr);
 		query.setParameter("gid", groupID);
-		list = query.list();		
+		list = query.list();
 		return list;
 	}
 }

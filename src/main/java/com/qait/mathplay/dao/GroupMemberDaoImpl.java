@@ -58,7 +58,7 @@ public class GroupMemberDaoImpl extends GenericDaoImpl<GroupMember> implements I
 	public List<GetInvitationsDTO> getGroupInvitationsForUser(String userID) {
 		Session session = getCurrentSession();
 		List<GetInvitationsDTO> list = null;
-		String queryStr = "Select new com.qait.mathplaynlearn.dto.GetInvitationsDTO(g.groupName, g.groupID, u.userID, m.id) "
+		String queryStr = "Select new com.qait.mathplay.dto.GetInvitationsDTO(g.groupName, g.groupID, u.userID, m.id) "
 				+ " from GroupMember gm join gm.group g join g.groupOwner u join gm.member m where m.userID = :uid and gm.status = :status";
 		Query query = session.createQuery(queryStr);
 		query.setString("uid", userID);

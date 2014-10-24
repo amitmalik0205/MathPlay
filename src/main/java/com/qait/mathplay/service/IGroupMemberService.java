@@ -19,4 +19,6 @@ public interface IGroupMemberService {
 	public List<GetInvitationsDTO> getGroupInvitationsForUser(String userID);
 	
 	public Long getInvitationCount(String userID);
+	
+	public void saveOrUpdate(GroupMember member);
 }
