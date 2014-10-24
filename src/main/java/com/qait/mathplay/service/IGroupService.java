@@ -8,7 +8,7 @@ import com.qait.mathplay.dto.GroupDTO;
 
 public interface IGroupService {
 
-	public boolean saveGroup(Group group);
+	public void saveGroup(Group group);
 	
 	public Group getGroupByGroupName(String groupName);
 	
@@ -16,7 +16,7 @@ public interface IGroupService {
 	
 	public Group getGroupByGroupId(long groupID);
 	
-	public boolean delete(Group group);
+	public void deleteGroup(Group group);
 	
 	public User getGroupOwner(Long groupID);
 	

@@ -14,10 +14,10 @@ public class CreateUser {
 		String url = "http://localhost:8081/MathPlay/rest/math-play-service/register-new-user";
 		
 		SecurityQuestion question = new SecurityQuestion();
-		question.setQuestionId(1L);
+		question.setQuestionId(4L);
 		
 		User user = new User();
-		user.setUserID("amit0205");
+		user.setUserID("amit12");
 		user.setAnswer("Answer");
 		user.setPassword("1234");
 		user.setCity("Delhi");

@@ -15,7 +15,7 @@ public interface IUserDao extends IGenericDao<User> {
 	
 	public List<GroupMemberInfoDTO> getMatchingUserID(String str);
 	
-	public User getUserWithSecurityQuestion(String userId);
+	public List<User> getUserWithSecurityQuestion(String userId);
 	
 	public User getUser(long id);
 	

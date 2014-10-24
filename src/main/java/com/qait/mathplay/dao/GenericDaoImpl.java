@@ -78,4 +78,9 @@ public class GenericDaoImpl<T extends Serializable> implements IGenericDao<T> {
 		entity = (T) query.uniqueResult();
 		return entity;
 	}
+
+	@Override
+	public void saveOrUpdate(T entity) {
+		getCurrentSession().saveOrUpdate(entity);
+	}
 }

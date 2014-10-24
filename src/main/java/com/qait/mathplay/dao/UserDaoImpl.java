@@ -51,21 +51,20 @@ public class UserDaoImpl extends GenericDaoImpl<User> implements IUserDao {
 	public List<GroupMemberInfoDTO> getMatchingUserID(String str) {
 		List<GroupMemberInfoDTO> list = new ArrayList<GroupMemberInfoDTO>();
 		Session session = getCurrentSession();
-		String queryString = "Select new com.qait.mathplaynlearn.dto.GroupMemberInfoDTO(u.id,u.userID) from User u where u.userID like '"+str+"%'";
+		String queryString = "Select new com.qait.mathplay.dto.GroupMemberInfoDTO(u.id,u.userID) from User u where u.userID like '"+str+"%'";
 		Query query = session.createQuery(queryString);
 		list = query.list();
 		return list;
 	}
 	
 	@Override
-	public User getUserWithSecurityQuestion(String userId) {
+	@SuppressWarnings("unchecked")
+	public List<User> getUserWithSecurityQuestion(String userId) {
 		Session session = getCurrentSession();
-		User user = null;
 		String queryString = "from User u join fetch u.securityQuestion where u.userID = :userId";
 		Query query = session.createQuery(queryString);
 		query.setParameter("userId", userId);
-		user = (User)query.list().get(0);
-		return user;
+		return query.list();
 	}
 	
 	@Override
@@ -81,7 +80,7 @@ public class UserDaoImpl extends GenericDaoImpl<User> implements IUserDao {
 	public List<GroupMemberInfoDTO> getMatchingUserIDForGroup(String str, long groupID) {
 		List<GroupMemberInfoDTO> list = new ArrayList<GroupMemberInfoDTO>();
 		Session session = getCurrentSession();
-		String queryString = "Select new com.qait.mathplaynlearn.dto.GroupMemberInfoDTO(u.id,u.userID,gm.status) "
+		String queryString = "Select new com.qait.mathplay.dto.GroupMemberInfoDTO(u.id,u.userID,gm.status) "
 				+ " from GroupMember gm join gm.member u where gm.group.groupID=:gid and u.userID like '"+str+"%'";
 		Query query = session.createQuery(queryString);
 		query.setParameter("gid", groupID);

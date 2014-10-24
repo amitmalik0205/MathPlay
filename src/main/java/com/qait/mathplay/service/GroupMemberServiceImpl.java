@@ -19,8 +19,8 @@ public class GroupMemberServiceImpl implements IGroupMemberService {
 	private IGroupMemberDao groupMemberDao;
 	
 	@Override
-	public boolean saveMember(GroupMember member) { 
-		return groupMemberDao.saveMember(member);
+	public void saveMember(GroupMember member) { 
+		groupMemberDao.create(member);
 	}
 	
 	@Override
@@ -44,8 +44,8 @@ public class GroupMemberServiceImpl implements IGroupMemberService {
 	}
 	
 	@Override
-	public boolean deleteGroupMember(long groupID, long memberID) {
-		return groupMemberDao.deleteGroupMember(groupID, memberID);
+	public void deleteGroupMember(long groupID, long memberID) {
+		 groupMemberDao.deleteGroupMember(groupID, memberID);
 	}
 	
 	@Override

@@ -2,23 +2,16 @@ package com.qait.mathplay.service;
 
 import java.util.List;
 
-import javax.ws.rs.core.Response;
-
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.qait.mathplay.dao.IUserDao;
 import com.qait.mathplay.dao.domain.User;
 import com.qait.mathplay.dto.GroupMemberInfoDTO;
-import com.qait.mathplay.rest.MathPlayNLearnServiceResponse;
-import com.qait.mathplay.util.MathPlayPropertiesFileReaderUtil;
 
 @Service("userService")
 public class UserServiceImpl implements IUserService {
-	
-	private static final Logger logger = Logger.getLogger(UserServiceImpl.class);
-	
+		
 	@Autowired
 	private IUserDao userDao;
 	
@@ -44,7 +37,12 @@ public class UserServiceImpl implements IUserService {
 	
 	@Override
 	public User getUserWithSecurityQuestion(String userId) {
-		return userDao.getUserWithSecurityQuestion(userId);
+		List<User> list = userDao.getUserWithSecurityQuestion(userId);
+		User user = null;
+		if (list.size() > 0) {
+			user = (User)list.get(0);
+		}
+		return user;
 	}
 	
 	@Override

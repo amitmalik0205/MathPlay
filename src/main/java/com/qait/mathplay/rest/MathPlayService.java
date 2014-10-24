@@ -1,14 +1,19 @@
 package com.qait.mathplay.rest;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -19,66 +24,83 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.qait.mathlay.enums.MemberStatus;
+import com.qait.mathplay.dao.domain.Game;
+import com.qait.mathplay.dao.domain.GameDetails;
 import com.qait.mathplay.dao.domain.Group;
 import com.qait.mathplay.dao.domain.GroupMember;
+import com.qait.mathplay.dao.domain.SecurityQuestion;
 import com.qait.mathplay.dao.domain.User;
 import com.qait.mathplay.dto.CreateGroupResponseDTO;
+import com.qait.mathplay.dto.GameDetailsDTO;
+import com.qait.mathplay.dto.GroupDTO;
+import com.qait.mathplay.dto.GroupMemberDTO;
+import com.qait.mathplay.dto.GroupMemberInfoDTO;
+import com.qait.mathplay.dto.RecoverPasswordDTO;
+import com.qait.mathplay.service.IGameDetailsService;
+import com.qait.mathplay.service.IGameService;
 import com.qait.mathplay.service.IGroupMemberService;
 import com.qait.mathplay.service.IGroupService;
 import com.qait.mathplay.service.ISecurityQuestionService;
 import com.qait.mathplay.service.IUserService;
 import com.qait.mathplay.util.MathPlayNLearnUtil;
-import com.qait.mathplay.util.MathPlayPropertiesFileReaderUtil;
 
 @Component
 @Path("math-play-service")
 public class MathPlayService {
-	
-	private static final Logger logger = Logger.getLogger(MathPlayService.class);
-	
+
+	private static final Logger logger = Logger
+			.getLogger(MathPlayService.class);
+
 	@Autowired
 	@Qualifier("msgConfig")
 	private Properties msgConfig;
-	
+
 	@Autowired
 	private IUserService userService;
-	
+
 	@Autowired
 	private IGroupService groupService;
-	
+
 	@Autowired
 	private IGroupMemberService memberService;
-	
+
 	@Autowired
 	private ISecurityQuestionService questionService;
-	
+
+	@Autowired
+	private IGameService gameService;
+
+	@Autowired
+	private IGameDetailsService detailsService;
+
 	@Path("test")
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
 	public String text() throws IOException {
 		return "Its working";
 	}
-	
+
 	@GET
 	@Path("get-security-questions")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional
 	public Response getSecurityQuestions() {
 		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
+		List<SecurityQuestion> list = null;
 		try {
 
-			return Response.ok(questionService.getAllQuestions()).build();
+			list = questionService.getAllQuestions();
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setCode("getSecurityQuestion001");
 			response.setMessage(msgConfig.getProperty("getSecurityQuestion001"));
 			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
+			throw new WebApplicationException(Response.ok(response).build());
 		}
-		
-		return Response.ok(response).build();
+		return Response.ok(list).build();
 	}
-	
+
 	@POST
 	@Path("register-new-user")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -102,11 +124,11 @@ public class MathPlayService {
 			response.setCode("rsgisterUser002");
 			response.setMessage(msgConfig.getProperty("rsgisterUser002"));
 			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
+			throw new WebApplicationException(Response.ok(response).build());
 		}
-
 		return Response.ok(response).build();
 	}
-	
+
 	@POST
 	@Path("sign-in")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -119,62 +141,220 @@ public class MathPlayService {
 					user.getPassword()) != null) {
 				response.setCode("signIn001");
 				response.setMessage(msgConfig.getProperty("signIn001"));
-				
+
 			} else {
 				response.setCode("signIn002");
 				response.setMessage(msgConfig.getProperty("signIn002"));
 			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setCode("signIn003");
 			response.setMessage(msgConfig.getProperty("signIn003"));
 			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
+			throw new WebApplicationException(Response.ok(response).build());
 		}
-		return Response.status(200).entity(response).build();
+		return Response.ok(response).build();
 	}
-	
+
 	/**
-	 * Creates new group
+	 * Service will return the List of UseID's matching with @param searchStr
 	 * 
-	 * @param userID
-	 *            - Owner of the group
-	 * @param groupName
-	 *            - Name of the group
-	 * @return
+	 * @param searchStr
+	 *            - Search String
+	 * @return - List of UserID's
 	 */
+	@GET
+	@Path("search-user")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response searchUser(@QueryParam("userIDString") String searchStr,
+			@QueryParam("groupID") long groupID) {
+		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
+		List<GroupMemberInfoDTO> fullList = null;
+
+		try {
+
+			List<GroupMemberInfoDTO> groupList = userService
+					.getMatchingUserIDForGroup(searchStr, groupID);
+
+			fullList = new CopyOnWriteArrayList<GroupMemberInfoDTO>(
+					userService.getMatchingUserID(searchStr));
+
+			for (GroupMemberInfoDTO outer : groupList) {
+				for (GroupMemberInfoDTO inner : fullList) {
+					if (outer.getUserKey() == inner.getUserKey()) {
+						fullList.remove(inner);
+						break;
+					}
+				}
+			}
+			groupList.addAll(fullList);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setCode("searchUser001");
+			response.setMessage(msgConfig.getProperty("searchUser001"));
+			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
+			throw new WebApplicationException(Response.ok(response).build());
+		}
+		return Response.ok(fullList).build();
+	}
+
+	@POST
+	@Path("recover-password")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response recoverPassword(RecoverPasswordDTO dto) {
+
+		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
+
+		List<String> errorMessages = dto.validate();
+		if (!errorMessages.isEmpty()) {
+			return Response.ok(errorMessages).build();
+		}
+
+		try {
+
+			User savedUser = userService.getUserWithSecurityQuestion(dto
+					.getUserID());
+
+			if (savedUser == null) {
+				response.setCode("recoverPassword002");
+				response.setMessage(msgConfig.getProperty("recoverPassword002"));
+
+			} else {
+
+				SecurityQuestion savedQuestion = savedUser
+						.getSecurityQuestion();
+				Long questionID = dto.getQuestionID();
+
+				if (questionID.equals(savedQuestion.getQuestionId())) {
+					if (savedUser
+							.getAnswer()
+							.replaceAll("\\s", "")
+							.equalsIgnoreCase(
+									dto.getAnswer().replaceAll("\\s", ""))) {
+
+						response.setCode("recoverPassword001");
+						response.setMessage(msgConfig
+								.getProperty("recoverPassword001")
+								+ " "
+								+ savedUser.getPassword());
+					} else {
+						response.setCode("recoverPassword004");
+						response.setMessage(msgConfig
+								.getProperty("recoverPassword004"));
+					}
+
+				} else {
+					response.setCode("recoverPassword003");
+					response.setMessage(msgConfig
+							.getProperty("recoverPassword003"));
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setCode("recoverPassword005");
+			response.setMessage(msgConfig.getProperty("recoverPassword005"));
+			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
+			throw new WebApplicationException(Response.ok(response).build());
+		}
+		return Response.ok(response).build();
+	}
+
+	@POST
+	@Path("save-game-score")
+	@Consumes(value = MediaType.APPLICATION_JSON)
+	@Produces(value = MediaType.APPLICATION_JSON)
+	@Transactional(rollbackFor = Exception.class)
+	public Response saveUserGameScore(GameDetailsDTO details) {
+		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
+		try {
+
+			response.setCode("saveUserScore001");
+			response.setMessage(msgConfig.getProperty("saveUserScore001"));
+
+			User savedUser = userService.getUserByUserId(details.getUserID());
+
+			if (savedUser == null) {
+				response.setCode("saveUserScore003");
+				response.setMessage(msgConfig.getProperty("saveUserScore003"));
+
+			} else {
+
+				String gameName = details.getGameName();
+				String gameClass = details.getGameClass();
+				Game savedGame = gameService.getGameByNameAndClass(gameName,
+						gameClass);
+
+				if (savedGame == null) {
+					Game newGame = new Game();
+					newGame.setGameClass(gameClass);
+					newGame.setGameName(gameName);
+
+					gameService.saveGame(newGame);
+				}
+
+				savedGame = gameService.getGameByNameAndClass(gameName,
+						gameClass);
+
+				GameDetails savedGameDetails = detailsService
+						.getGameDetailsByUserAndGame(savedUser.getId(),
+								savedGame.getGameId());
+
+				if (savedGameDetails == null) {
+					GameDetails gameDetails = new GameDetails();
+					gameDetails.setGame(savedGame);
+					gameDetails.setUser(savedUser);
+					gameDetails.setLevel(details.getLevel());
+					gameDetails.setUserScore(details.getUserScore());
+					detailsService.saveGameDetails(gameDetails);
+				} else {
+					savedGameDetails.setLevel(details.getLevel());
+					savedGameDetails.setUserScore(details.getUserScore());
+					detailsService.saveGameDetails(savedGameDetails);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setCode("saveUserScore002");
+			response.setMessage(msgConfig.getProperty("saveUserScore002"));
+			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
+			throw new WebApplicationException(Response.ok(response).build());
+		}
+		return Response.ok(response).build();
+	}
+
 	@GET
 	@Path("create-group")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional(rollbackFor = Exception.class)
-	public Response createGroup(@QueryParam("userID") String userID,
+	public Response createGroup(@QueryParam("userID") String ownerID,
 			@QueryParam("groupName") String groupName) {
 		CreateGroupResponseDTO response = new CreateGroupResponseDTO();
-
-		User user = userService.getUserByUserId(userID);
-		if (user == null) {
-
-			response.setCode("createGroup004");
-			response.setMessage(MathPlayPropertiesFileReaderUtil
-					.getPropertyValue("createGroup004"));
-
-		} else {
-
-			Group savedGroup = groupService.getGroupByGroupName(groupName);
-			if (savedGroup != null) {
-
-				response.setCode("createGroup003");
-				response.setMessage(MathPlayPropertiesFileReaderUtil
-						.getPropertyValue("createGroup003"));
+		try {
+			User user = userService.getUserByUserId(ownerID);
+			if (user == null) {
+				response.setCode("createGroup004");
+				response.setMessage(msgConfig.getProperty("createGroup004"));
 
 			} else {
 
-				Group newGroup = new Group();
-				newGroup.setGroupName(groupName);
-				newGroup.setGroupOwner(user);
-				boolean isGroupSaved = groupService.saveGroup(newGroup);
+				Group savedGroup = groupService.getGroupByGroupName(groupName);
+				if (savedGroup != null) {
+					response.setCode("createGroup003");
+					response.setMessage(msgConfig.getProperty("createGroup003"));
+				} else {
 
-				if (isGroupSaved) {
+					Group newGroup = new Group();
+					newGroup.setGroupName(groupName);
+					newGroup.setGroupOwner(user);
+
+					groupService.saveGroup(newGroup);
 
 					// Add owner as group member
 					Group createdGroup = groupService
@@ -184,18 +364,178 @@ public class MathPlayService {
 					memberService.saveMember(groupMember);
 
 					response.setCode("createGroup001");
-					response.setMessage(MathPlayPropertiesFileReaderUtil
-							.getPropertyValue("createGroup001"));
+					response.setMessage(msgConfig.getProperty("createGroup001"));
 					response.setGroupID(createdGroup.getGroupID());
-
-				} else {
-
-					response.setCode("createGroup002");
-					response.setMessage(MathPlayPropertiesFileReaderUtil
-							.getPropertyValue("createGroup002"));
 				}
 			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setCode("createGroup002");
+			response.setMessage(msgConfig.getProperty("createGroup002"));
+			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
+			throw new WebApplicationException(Response.ok(response).build());
 		}
-		return Response.status(200).entity(response).build();
+		return Response.ok(response).build();
+	}
+
+	@GET
+	@Path("group-list-for-owner")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response getGroupList(@QueryParam("userID") String ownerId) {
+		List<GroupDTO> groupList = new ArrayList<GroupDTO>();
+		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
+
+		try {
+
+			List<Group> list = groupService.getGroupListForOwner(ownerId);
+
+			for (Group group : list) {
+				GroupDTO dto = new GroupDTO();
+				dto.setGroupID(group.getGroupID());
+				dto.setGroupName(group.getGroupName());
+				groupList.add(dto);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setCode("getOwnerGroupList001");
+			response.setMessage(msgConfig.getProperty("getOwnerGroupList001"));
+			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
+			throw new WebApplicationException(Response.ok(response).build());
+		}
+		return Response.ok(groupList).build();
+	}
+	
+	@POST
+	@Path("add-member-to-group")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional(rollbackFor = Exception.class)
+	public Response addMemberToGroup(GroupMemberDTO member) {
+		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
+		
+		try {
+			response.setCode("addMemberToGroup001");
+			response.setMessage(msgConfig.getProperty("addMemberToGroup001"));
+
+			User savedUser = userService.getUser(member.getUserKey());
+			Group savedgroup = groupService.getGroupByGroupId(member.getGroupID());
+
+			if (savedUser != null && savedgroup != null) {
+				GroupMember groupMember = new GroupMember(savedUser, savedgroup, MemberStatus.WAITING);
+				memberService.saveMember(groupMember);
+			} else {
+				
+				response.setCode("addMemberToGroup002");
+				response.setMessage(msgConfig.getProperty("addMemberToGroup002"));
+			}
+			/*
+			 * else { //Send Push Notification to user User groupOwner =
+			 * groupService.getGroupOwner(savedgroup.getGroupID());
+			 * 
+			 * if(groupOwner != null) {
+			 * 
+			 * String certificateFileName =
+			 * apnConfigurationProperties.getProperty("certificate.file"); String
+			 * password =
+			 * apnConfigurationProperties.getProperty("certificate.file.password");
+			 * 
+			 * StringBuilder message = new StringBuilder(groupOwner.getUserID());
+			 * message.append(" has requested you to join group ");
+			 * message.append(savedgroup.getGroupName());
+			 * 
+			 * Resource resource =
+			 * appContext.getResource("classpath:/apn/"+certificateFileName);
+			 * 
+			 * try {
+			 * MathPlayNLearnUtil.sendNotification(resource.getFile().toString(),
+			 * password, savedUser.getDeviceToken(), message.toString()); } catch
+			 * (Exception e) { e.printStackTrace();
+			 * logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e)); }
+			 * } }
+			 */
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setCode("addMemberToGroup002");
+			response.setMessage(msgConfig.getProperty("addMemberToGroup002"));
+			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
+			throw new WebApplicationException(Response.ok(response).build());
+		}
+		return Response.ok(response).build();
+	}
+	
+	@GET
+	@Path("get-group-members/{groupID}")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response listGroupMembers(@PathParam("groupID") long groupID) {
+		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
+		List<GroupMemberInfoDTO> membersInfoList = null;
+		
+		try {
+			membersInfoList = memberService.getMembersInfoByGroup(groupID);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setCode("getGroupMembers001");
+			response.setMessage(msgConfig.getProperty("getGroupMembers001"));
+			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
+			throw new WebApplicationException(Response.ok(response).build());
+		}
+		return Response.ok(membersInfoList).build();
+	}
+	
+	@POST
+	@Path("delete-member-from-group")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response deleteMember(GroupMemberDTO dto) {
+		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
+		response.setCode("deleteMemberFromGroup001");
+		response.setMessage(msgConfig.getProperty("deleteMemberFromGroup001"));
+		
+		try {
+			 memberService.deleteGroupMember(dto.getGroupID(), dto.getUserKey());
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setCode("deleteMemberFromGroup002");
+			response.setMessage(msgConfig.getProperty("deleteMemberFromGroup002"));
+			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
+			throw new WebApplicationException(Response.ok(response).build());
+		}
+		return Response.ok(response).build();
+	}
+	
+	@POST
+	@Path("delete-group")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional(rollbackFor = Exception.class)
+	public Response deleteGroup(GroupMemberDTO dto) {
+		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
+		response.setCode("deleteGroup001");
+		response.setMessage(msgConfig.getProperty("deleteGroup001"));
+		
+		try {
+			Group savedGroup = groupService.getGroupByGroupId(dto.getGroupID());
+
+			if (savedGroup != null) {
+				groupService.deleteGroup(savedGroup);
+
+			} else {
+				response.setCode("deleteGroup002");
+				response.setMessage(msgConfig.getProperty("deleteGroup002"));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setCode("deleteGroup003");
+			response.setMessage(msgConfig.getProperty("deleteGroup003"));
+			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
+			throw new WebApplicationException(Response.ok(response).build());
+		}
+		return Response.ok(response).build();
 	}
 }

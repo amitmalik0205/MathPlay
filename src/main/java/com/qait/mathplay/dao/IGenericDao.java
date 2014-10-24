@@ -18,4 +18,6 @@ public interface IGenericDao<T extends Serializable> {
 	void deleteById(final long entityId);
 	
 	T getByProperty(final String propertyName, final String value);
+	
+	void saveOrUpdate(final T entity);
 }

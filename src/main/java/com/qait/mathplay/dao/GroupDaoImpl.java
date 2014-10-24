@@ -3,7 +3,6 @@ package com.qait.mathplay.dao;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.springframework.stereotype.Repository;
@@ -16,18 +15,8 @@ import com.qait.mathplay.dto.GroupDTO;
 @Repository("groupDao")
 public class GroupDaoImpl extends GenericDaoImpl<Group> implements IGroupDao {
 	
-	private static final Logger logger = Logger.getLogger(GroupDaoImpl.class);
-
 	public GroupDaoImpl() {
 		super(Group.class);
-	}
-	
-	@Override
-	public boolean saveGroup(Group group) {
-		boolean groupSaved = true;
-		Session session = getCurrentSession();
-		session.save(group);
-		return groupSaved;
 	}
 	
 	@Override
@@ -58,14 +47,6 @@ public class GroupDaoImpl extends GenericDaoImpl<Group> implements IGroupDao {
 		Group group = null;
 		group = (Group) session.get(Group.class, new Long(groupID));
 		return group;
-	}
-	
-	@Override
-	public boolean deleteGroup(Group group) {
-		boolean groupDeleted = true;
-		Session session = getCurrentSession();
-		session.delete(group);
-		return groupDeleted;
 	}
 	
 	@Override

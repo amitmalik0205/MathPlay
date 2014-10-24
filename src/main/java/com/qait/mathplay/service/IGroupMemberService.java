@@ -8,13 +8,13 @@ import com.qait.mathplay.dto.GroupMemberInfoDTO;
 
 public interface IGroupMemberService {
 
-	public boolean saveMember(GroupMember member);
+	public void saveMember(GroupMember member);
 	
 	public List<GroupMemberInfoDTO> getMembersInfoByGroup(long groupID);
 	
 	public GroupMember getGroupMemberByID(long groupID, long memberID);
 	
-	public boolean deleteGroupMember(long groupID, long memberID);
+	public void deleteGroupMember(long groupID, long memberID);
 	
 	public List<GetInvitationsDTO> getGroupInvitationsForUser(String userID);
 	

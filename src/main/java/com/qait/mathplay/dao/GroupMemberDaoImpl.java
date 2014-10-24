@@ -3,7 +3,6 @@ package com.qait.mathplay.dao;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.springframework.stereotype.Repository;
@@ -15,23 +14,13 @@ import com.qait.mathplay.dto.GetInvitationsDTO;
 @Repository("groupMemberDao")
 public class GroupMemberDaoImpl extends GenericDaoImpl<GroupMember> implements IGroupMemberDao {
 
-	private static final Logger logger = Logger
-			.getLogger(GroupMemberDaoImpl.class);
 
 	public GroupMemberDaoImpl() {
 		super(GroupMember.class);
 	}
 	
 	@Override
-	public boolean saveMember(GroupMember member) {
-		boolean isSaved = true;
-		Session session = getCurrentSession();
-		session.saveOrUpdate(member);
-		int i = 1/0;
-		return isSaved;
-	}	 
-
-	@Override
+	@SuppressWarnings("unchecked")
 	public List<Object[]> getMembersInfoByGroup(long groupID) {
 		List<Object[]> list = new ArrayList<Object[]>();
 		Session session = getCurrentSession();
@@ -55,18 +44,17 @@ public class GroupMemberDaoImpl extends GenericDaoImpl<GroupMember> implements I
 	}
 
 	@Override
-	public boolean deleteGroupMember(long groupID, long memberID) {
+	public void deleteGroupMember(long groupID, long memberID) {
 		Session session = getCurrentSession();
-		boolean isDeleted = true;
 		String queryStr = "Delete from GroupMember gm where gm.groupMemberID.memberID=:mid and gm.groupMemberID.groupID=:gid";
 		Query query = session.createQuery(queryStr);
 		query.setParameter("mid", memberID);
 		query.setParameter("gid", groupID);
 		query.executeUpdate();
-		return isDeleted;
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public List<GetInvitationsDTO> getGroupInvitationsForUser(String userID) {
 		Session session = getCurrentSession();
 		List<GetInvitationsDTO> list = null;

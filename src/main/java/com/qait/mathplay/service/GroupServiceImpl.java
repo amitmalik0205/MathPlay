@@ -17,8 +17,8 @@ public class GroupServiceImpl implements IGroupService {
 	private IGroupDao groupDao;
 
 	@Override
-	public boolean saveGroup(Group group) {
-		return groupDao.saveGroup(group);
+	public void saveGroup(Group group) {
+		groupDao.create(group);
 	}
 
 	@Override
@@ -37,8 +37,8 @@ public class GroupServiceImpl implements IGroupService {
 	}
 	
 	@Override
-	public boolean delete(Group group) {
-		return groupDao.deleteGroup(group);
+	public void deleteGroup(Group group) {
+		groupDao.delete(group);
 	}
 	
 	@Override
