@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import javax.validation.Valid;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -46,7 +47,6 @@ import com.qait.mathplay.service.IGroupService;
 import com.qait.mathplay.service.ISecurityQuestionService;
 import com.qait.mathplay.service.IUserService;
 import com.qait.mathplay.util.MathPlayNLearnUtil;
-import com.qait.mathplay.util.MathPlayPropertiesFileReaderUtil;
 
 @Component
 @Path("math-play-service")
@@ -211,15 +211,8 @@ public class MathPlayService {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional
-	public Response recoverPassword(RecoverPasswordDTO dto) {
-
+	public Response recoverPassword(@Valid RecoverPasswordDTO dto) {
 		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
-
-		List<String> errorMessages = dto.validate();
-		if (!errorMessages.isEmpty()) {
-			return Response.ok(errorMessages).build();
-		}
-
 		try {
 
 			User savedUser = userService.getUserWithSecurityQuestion(dto
@@ -274,7 +267,7 @@ public class MathPlayService {
 	@Consumes(value = MediaType.APPLICATION_JSON)
 	@Produces(value = MediaType.APPLICATION_JSON)
 	@Transactional(rollbackFor = Exception.class)
-	public Response saveUserGameScore(GameDetailsDTO details) {
+	public Response saveUserGameScore(@Valid GameDetailsDTO details) {
 		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
 		try {
 

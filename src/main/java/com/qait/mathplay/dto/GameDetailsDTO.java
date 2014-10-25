@@ -2,18 +2,31 @@ package com.qait.mathplay.dto;
 
 import java.io.Serializable;
 
+import javax.validation.constraints.NotNull;
+
+import org.hibernate.validator.constraints.Length;
+
 public class GameDetailsDTO implements Serializable {
 
 	private static final long serialVersionUID = -6633852339257554017L;
 
+	@NotNull(message = "{GameDetailsDTO.userScore.empty}")
+	private Long userScore;
+	
+	@NotNull(message = "{GameDetailsDTO.level.empty}")
+	@Length(min = 1, message = "{GameDetailsDTO.level.empty}")
 	private String level;
 	
-	private long userScore;
-	
+	@NotNull(message = "{GameDetailsDTO.userid.empty}")
+	@Length(min = 1, message = "{GameDetailsDTO.userid.empty}")
 	private String userID;
 	
+	@NotNull(message = "{GameDetailsDTO.gamename.empty}")
+	@Length(min = 1, message = "{GameDetailsDTO.gamename.empty}")
 	private String gameName;
 	
+	@NotNull(message = "{GameDetailsDTO.gameclass.empty}")
+	@Length(min = 1, message = "{GameDetailsDTO.gameclass.empty}")
 	private String gameClass;
 
 	public String getLevel() {
@@ -24,11 +37,11 @@ public class GameDetailsDTO implements Serializable {
 		this.level = level;
 	}
 
-	public long getUserScore() {
+	public Long getUserScore() {
 		return userScore;
 	}
 
-	public void setUserScore(long userScore) {
+	public void setUserScore(Long userScore) {
 		this.userScore = userScore;
 	}
 
