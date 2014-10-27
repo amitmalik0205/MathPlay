@@ -1,49 +1,26 @@
 package com.qait.mathplay.dto;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
-import javax.validation.Validator;
+import javax.validation.constraints.NotNull;
 
 import org.hibernate.validator.constraints.Length;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 
 public class RecoverPasswordDTO implements Serializable {
 
 	private static final long serialVersionUID = -9128445344552506847L;
 
-	@Length(min = 1, message = "User ID can not be empty")
-	@JsonProperty
+	@NotNull(message = "{RecoverPasswordDTO.userid.empty}")
+	@Length(min = 1, message = "{RecoverPasswordDTO.userid.empty}")
 	private String userID;
 	
-	@Length(min = 1, message = "Answer can not be empty")
-	@JsonProperty
+	@NotNull(message= "{RecoverPasswordDTO.answer.empty}")
+	@Length(min = 1, message= "{RecoverPasswordDTO.answer.empty}")
 	private String answer;
 	
-	@Length(min = 1, message = "Question can not be empty")
-	@JsonProperty
+	@NotNull(message = "{RecoverPasswordDTO.question.empty}")
 	private Long questionID;
-
-	public List<String> validate() {
-		List<String> errorMessages = new ArrayList<String>();
-		Validator validator = Validation.buildDefaultValidatorFactory()
-				.getValidator();
-
-		Set<ConstraintViolation<RecoverPasswordDTO>> violations = validator
-				.validate(this);
-		if (!violations.isEmpty()) {
-			for (ConstraintViolation<RecoverPasswordDTO> violation : violations) {
-				errorMessages.add(violation.getMessage());
-			}
-		}
-		return errorMessages;
-	}
 	
 	public String getUserID() {
 		return userID;

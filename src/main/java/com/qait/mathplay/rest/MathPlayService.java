@@ -7,6 +7,7 @@ import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -19,9 +20,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.log4j.Logger;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.qait.mathlay.enums.MemberStatus;
@@ -48,7 +50,7 @@ import com.qait.mathplay.service.ISecurityQuestionService;
 import com.qait.mathplay.service.IUserService;
 import com.qait.mathplay.util.MathPlayNLearnUtil;
 
-@Component
+@Service
 @Path("math-play-service")
 public class MathPlayService {
 
@@ -173,8 +175,9 @@ public class MathPlayService {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional
-	public Response searchUser(@QueryParam("userIDString") String searchStr,
-			@QueryParam("groupID") long groupID) {
+	public Response searchUser(
+			@Length(min = 1, message = "{SearchUser.searchStr.empty}") @QueryParam("userIDString") String searchStr,
+			@NotNull(message = "{SearchUser.groupid.empty}") @QueryParam("groupID") long groupID) {
 		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
 		List<GroupMemberInfoDTO> fullList = null;
 
@@ -270,7 +273,6 @@ public class MathPlayService {
 	public Response saveUserGameScore(@Valid GameDetailsDTO details) {
 		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
 		try {
-
 			response.setCode("saveUserScore001");
 			response.setMessage(msgConfig.getProperty("saveUserScore001"));
 

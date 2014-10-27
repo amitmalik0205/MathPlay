@@ -1,4 +1,4 @@
-package com.qait.mathplay.rest;
+package com.qait.mathplay.rest.exception.mapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +17,7 @@ public class ConstraintViolationExceptionMapper implements ExceptionMapper<Const
     public Response toResponse(ConstraintViolationException exception) {
     	List<String> errorMessages = new ArrayList<String>();
     	Set<ConstraintViolation<?>> violations = exception.getConstraintViolations();
+    	
     	if (!violations.isEmpty()) {
 			for (ConstraintViolation<?> violation : violations) {
 				errorMessages.add(violation.getMessage());
