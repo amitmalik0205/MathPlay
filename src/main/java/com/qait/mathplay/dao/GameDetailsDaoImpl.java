@@ -56,4 +56,31 @@ public class GameDetailsDaoImpl extends GenericDaoImpl<GameDetails> implements
 		list = query.list();
 		return list;
 	}
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<Object[]> getScoreForGroupAllGames(long groupID) {
+		List<Object[]> list = new ArrayList<Object[]>();
+		Session session = getCurrentSession();
+		String queryStr = "SELECT gme.gameId, gme.gameName, gme.gameClass, u.id, u.userID, u.name, u.city, u.country, gd.level, gd.userScore "
+				+ "from GroupMember gm JOIN gm.group g JOIN gm.member u JOIN u.gameDetails gd JOIN gd.game gme WHERE g.groupID = :gid "
+				+ " ORDER BY gd.userScore DESC";
+		Query query = session.createQuery(queryStr);
+		query.setParameter("gid", groupID);
+		list = query.list();
+		return list;
+	}
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<Object[]> getScoreForUserAllGames(long userID) {
+		List<Object[]> list = new ArrayList<Object[]>();
+		Session session = getCurrentSession();
+		String queryStr = "SELECT gme.gameId, gme.gameName, gme.gameClass, u.id, u.userID, u.name, u.city, u.country, gd.level, gd.userScore "
+				+ "from GameDetails gd JOIN gd.game gme JOIN gd.user u WHERE u.id = :uid ";
+		Query query = session.createQuery(queryStr);
+		query.setParameter("uid", userID);
+		list = query.list();
+		return list;
+	}
 }

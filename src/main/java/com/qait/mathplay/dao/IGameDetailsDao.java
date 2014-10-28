@@ -11,4 +11,8 @@ public interface IGameDetailsDao extends IGenericDao<GameDetails> {
 	public List<Object[]> getScoreForGroup(long groupID, long gameID);
 	
 	public List<Object[]> getTotalScoreForUser(long groupID);
+	
+	public List<Object[]> getScoreForGroupAllGames(long groupID);
+	
+	public List<Object[]> getScoreForUserAllGames(long userID);
 }

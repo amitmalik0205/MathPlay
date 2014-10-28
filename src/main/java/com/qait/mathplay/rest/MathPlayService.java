@@ -3,6 +3,7 @@ package com.qait.mathplay.rest;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -43,6 +44,7 @@ import com.qait.mathplay.dto.GroupScoreDTO;
 import com.qait.mathplay.dto.LeaveGroupDTO;
 import com.qait.mathplay.dto.RecoverPasswordDTO;
 import com.qait.mathplay.dto.UpdateInvitationStatusDTO;
+import com.qait.mathplay.dto.UserGameScoreDTO;
 import com.qait.mathplay.service.IGameDetailsService;
 import com.qait.mathplay.service.IGameService;
 import com.qait.mathplay.service.IGroupMemberService;
@@ -713,5 +715,32 @@ public class MathPlayService {
 			throw new WebApplicationException(Response.ok(response).build());
 		}
 		return Response.ok(response).build();
+	}
+	
+	@POST
+	@Path("get-user-position-all-games")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response getUserPositionScoreInAllGames(@Valid LeaveGroupDTO dto) {
+		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
+		response.setCode("leaveGroup001");
+		response.setMessage(msgConfig.getProperty("leaveGroup001"));
+		
+		Map<Long, List<UserGameScoreDTO>> allUserMap = null; 
+		Map<Long, Long> userMap = null;
+	
+		try {
+			allUserMap = detailsService.getScoreForEachGameByGroupForAllUsers(dto.getGroupID());
+			userMap = detailsService.getScoreForEachGameForUser(dto.getUserKey());
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setCode("leaveGroup002");
+			response.setMessage(msgConfig.getProperty("leaveGroup002"));
+			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
+			throw new WebApplicationException(Response.ok(response).build());
+		}
+		return Response.ok(userMap).build();
 	}
 }
