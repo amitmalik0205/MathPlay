@@ -40,6 +40,7 @@ import com.qait.mathplay.dto.GroupDTO;
 import com.qait.mathplay.dto.GroupMemberDTO;
 import com.qait.mathplay.dto.GroupMemberInfoDTO;
 import com.qait.mathplay.dto.GroupScoreDTO;
+import com.qait.mathplay.dto.LeaveGroupDTO;
 import com.qait.mathplay.dto.RecoverPasswordDTO;
 import com.qait.mathplay.dto.UpdateInvitationStatusDTO;
 import com.qait.mathplay.service.IGameDetailsService;
@@ -143,10 +144,10 @@ public class MathPlayService {
 	public Response authinticateUser(User user) {
 		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
 		try {
-			if (userService.authenticateUser(user.getUserID(),
-					user.getPassword()) != null) {
+			User savedUser = userService.authenticateUser(user.getUserID(), user.getPassword());
+			if (savedUser != null) {
 				response.setCode("signIn001");
-				response.setMessage(msgConfig.getProperty("signIn001"));
+				response.setMessage(savedUser.getId().toString());
 
 			} else {
 				response.setCode("signIn002");
@@ -391,9 +392,14 @@ public class MathPlayService {
 			List<Group> list = groupService.getGroupListForOwner(ownerId);
 
 			for (Group group : list) {
+				User owner = group.getGroupOwner();
 				GroupDTO dto = new GroupDTO();
 				dto.setGroupID(group.getGroupID());
 				dto.setGroupName(group.getGroupName());
+				dto.setOwnerUserID(owner.getUserID());
+				dto.setOwnerName(owner.getName());
+				dto.setOwnerCity(owner.getCity());
+				dto.setOwnerCountry(owner.getCity());
 				groupList.add(dto);
 			}
 		} catch (Exception e) {
@@ -680,6 +686,29 @@ public class MathPlayService {
 			e.printStackTrace();
 			response.setCode("updateInvitationStatus001");
 			response.setMessage(msgConfig.getProperty("updateInvitationStatus001"));
+			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
+			throw new WebApplicationException(Response.ok(response).build());
+		}
+		return Response.ok(response).build();
+	}
+	
+	@POST
+	@Path("leave-group")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional(rollbackFor = Exception.class)
+	public Response leaveGroup(@Valid LeaveGroupDTO dto) {
+		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
+		response.setCode("leaveGroup001");
+		response.setMessage(msgConfig.getProperty("leaveGroup001"));
+	
+		try {
+			memberService.deleteGroupMember(dto.getGroupID(), dto.getUserKey());
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setCode("leaveGroup002");
+			response.setMessage(msgConfig.getProperty("leaveGroup002"));
 			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
 			throw new WebApplicationException(Response.ok(response).build());
 		}

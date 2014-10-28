@@ -24,7 +24,8 @@ public class GroupMemberDaoImpl extends GenericDaoImpl<GroupMember> implements I
 	public List<Object[]> getMembersInfoByGroup(long groupID) {
 		List<Object[]> list = new ArrayList<Object[]>();
 		Session session = getCurrentSession();
-		String queryStr = "Select u.id, u.userID, gm.status from GroupMember gm join gm.group g join gm.member u where g.groupID = :gid";
+		String queryStr = "Select u.id, u.userID, u.name, u.city, u.country, gm.status from GroupMember gm "
+				+ " join gm.group g join gm.member u where g.groupID = :gid";
 		Query query = session.createQuery(queryStr);
 		query.setParameter("gid", groupID);
 		list = query.list();
@@ -58,7 +59,7 @@ public class GroupMemberDaoImpl extends GenericDaoImpl<GroupMember> implements I
 	public List<GetInvitationsDTO> getGroupInvitationsForUser(String userID) {
 		Session session = getCurrentSession();
 		List<GetInvitationsDTO> list = null;
-		String queryStr = "Select new com.qait.mathplay.dto.GetInvitationsDTO(g.groupName, g.groupID, u.userID, m.id) "
+		String queryStr = "Select new com.qait.mathplay.dto.GetInvitationsDTO(g.groupName, g.groupID, u.userID, u.name, u.city, u.country, m.id) "
 				+ " from GroupMember gm join gm.group g join g.groupOwner u join gm.member m where m.userID = :uid and gm.status = :status";
 		Query query = session.createQuery(queryStr);
 		query.setString("uid", userID);

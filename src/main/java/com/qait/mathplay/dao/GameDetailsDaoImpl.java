@@ -34,7 +34,7 @@ public class GameDetailsDaoImpl extends GenericDaoImpl<GameDetails> implements
 	public List<Object[]> getScoreForGroup(long groupID, long gameID) {
 		List<Object[]> list = new ArrayList<Object[]>();
 		Session session = getCurrentSession();
-		String queryStr = "SELECT u.userID, gd.level, gd.userScore, gm.status from GroupMember gm JOIN gm.group g "
+		String queryStr = "SELECT u.userID, u.name, u.city, u.country, gd.level, gd.userScore, gm.status from GroupMember gm JOIN gm.group g "
 				+ "JOIN gm.member u JOIN u.gameDetails gd WHERE g.groupID = :gid and gd.game.gameId = :gameid "
 				+ " ORDER BY gd.userScore DESC";
 		Query query = session.createQuery(queryStr);

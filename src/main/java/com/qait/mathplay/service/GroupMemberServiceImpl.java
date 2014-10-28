@@ -32,7 +32,10 @@ public class GroupMemberServiceImpl implements IGroupMemberService {
 			 GroupMemberInfoDTO dto = new GroupMemberInfoDTO();
 			 dto.setUserKey((Long)objArr[0]);
 			 dto.setUserID((String)objArr[1]);
-			 dto.setStatus((MemberStatus)objArr[2]);
+			 dto.setName((String)objArr[2]);
+			 dto.setCity((String)objArr[3]);
+			 dto.setCountry((String)objArr[4]);
+			 dto.setStatus((MemberStatus)objArr[5]);
 			 membersInfoList.add(dto);
 		 }
 		 return membersInfoList;

@@ -35,7 +35,7 @@ public class GroupDaoImpl extends GenericDaoImpl<Group> implements IGroupDao {
 	public List<Group> getGroupListForOwner(String ownerID) {
 		Session session = getCurrentSession();
 		List<Group> list = new ArrayList<Group>();
-		String queryString = "from Group g where g.groupOwner.userID = :owner";
+		String queryString = "from Group g join fetch g.groupOwner u where u.userID = :owner";
 		Query query = session.createQuery(queryString);
 		query.setString("owner", ownerID);
 		list = query.list();
@@ -66,8 +66,8 @@ public class GroupDaoImpl extends GenericDaoImpl<Group> implements IGroupDao {
 	public List<GroupDTO> getGroupListForMember(String memberID) {
 		Session session = getCurrentSession();
 		List<GroupDTO> list = new ArrayList<GroupDTO>();
-		String queryString = "Select new com.qait.mathplay.dto.GroupDTO(g.groupID, g.groupName) from GroupMember gm "
-				+ " join gm.group g join gm.member m join g.groupOwner u where u.userID <> :memberID "
+		String queryString = "Select new com.qait.mathplay.dto.GroupDTO(g.groupID, g.groupName, u.userID, u.name, u.city, u.country) "
+				+ " from GroupMember gm join gm.group g join gm.member m join g.groupOwner u where u.userID <> :memberID "
 				+ " and m.userID = :memberID and gm.status <> :status";
 		Query query = session.createQuery(queryString);
 		query.setString("memberID", memberID);

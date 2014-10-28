@@ -12,16 +12,25 @@ public class GetInvitationsDTO implements Serializable {
 
 	private String groupOwner;
 
+	private String ownerName;
+
+	private String ownerCity;
+
+	private String ownerCountry;
+	
 	private long memberID;
 
 	public GetInvitationsDTO(String groupName, long groupID, String groupOwner,
-			long memberID) {
+			String name, String city, String country, long memberID) {
 		this.groupName = groupName;
 		this.groupID = groupID;
 		this.groupOwner = groupOwner;
+		this.ownerName = name;
+		this.ownerCity = city;
+		this.ownerCountry = country;
 		this.memberID = memberID;
 	}
-	
+
 	public GetInvitationsDTO(String groupName, long groupID) {
 		this.groupName = groupName;
 		this.groupID = groupID;
@@ -57,5 +66,29 @@ public class GetInvitationsDTO implements Serializable {
 
 	public void setMemberID(long memberID) {
 		this.memberID = memberID;
+	}
+
+	public String getOwnerName() {
+		return ownerName;
+	}
+
+	public void setOwnerName(String ownerName) {
+		this.ownerName = ownerName;
+	}
+
+	public String getOwnerCity() {
+		return ownerCity;
+	}
+
+	public void setOwnerCity(String ownerCity) {
+		this.ownerCity = ownerCity;
+	}
+
+	public String getOwnerCountry() {
+		return ownerCountry;
+	}
+
+	public void setOwnerCountry(String ownerCountry) {
+		this.ownerCountry = ownerCountry;
 	}
 }

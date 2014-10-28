@@ -12,21 +12,33 @@ public class GroupMemberInfoDTO implements Serializable {
 	
 	private String userID;
 	
+	private String name;
+	
+	private String city;
+	
+	private String country;
+	
 	private MemberStatus status;
 
 	public GroupMemberInfoDTO() {
 		// TODO Auto-generated constructor stub
 	}
 	
-	public GroupMemberInfoDTO(long userKey, String userID) {
+	public GroupMemberInfoDTO(long userKey, String userID, String name, String city, String country) {
 		this.userKey = userKey;
 		this.userID = userID;
+		this.name = name;
+		this.city = city;
+		this.country = country;
 		this.status = MemberStatus.ADD;
 	}
 	
-	public GroupMemberInfoDTO(long userKey, String userID, MemberStatus status) {
+	public GroupMemberInfoDTO(long userKey, String userID, String name, String city, String country, MemberStatus status) {
 		this.userKey = userKey;
 		this.userID = userID;
+		this.name = name;
+		this.city = city;
+		this.country = country;
 		this.status = status;
 	}
 	
@@ -52,5 +64,29 @@ public class GroupMemberInfoDTO implements Serializable {
 
 	public void setStatus(MemberStatus status) {
 		this.status = status;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getCity() {
+		return city;
+	}
+
+	public void setCity(String city) {
+		this.city = city;
+	}
+
+	public String getCountry() {
+		return country;
+	}
+
+	public void setCountry(String country) {
+		this.country = country;
 	}
 } 

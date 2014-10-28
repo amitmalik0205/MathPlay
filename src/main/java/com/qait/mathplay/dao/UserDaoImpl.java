@@ -51,7 +51,8 @@ public class UserDaoImpl extends GenericDaoImpl<User> implements IUserDao {
 	public List<GroupMemberInfoDTO> getMatchingUserID(String str) {
 		List<GroupMemberInfoDTO> list = new ArrayList<GroupMemberInfoDTO>();
 		Session session = getCurrentSession();
-		String queryString = "Select new com.qait.mathplay.dto.GroupMemberInfoDTO(u.id,u.userID) from User u where u.userID like '"+str+"%'";
+		String queryString = "Select new com.qait.mathplay.dto.GroupMemberInfoDTO(u.id,u.userID,u.name,u.city,u.country) "
+				+ " from User u where u.userID like '"+str+"%'";
 		Query query = session.createQuery(queryString);
 		list = query.list();
 		return list;
@@ -80,7 +81,7 @@ public class UserDaoImpl extends GenericDaoImpl<User> implements IUserDao {
 	public List<GroupMemberInfoDTO> getMatchingUserIDForGroup(String str, long groupID) {
 		List<GroupMemberInfoDTO> list = new ArrayList<GroupMemberInfoDTO>();
 		Session session = getCurrentSession();
-		String queryString = "Select new com.qait.mathplay.dto.GroupMemberInfoDTO(u.id,u.userID,gm.status) "
+		String queryString = "Select new com.qait.mathplay.dto.GroupMemberInfoDTO(u.id,u.userID,u.name,u.city,u.country,gm.status) "
 				+ " from GroupMember gm join gm.member u where gm.group.groupID=:gid and u.userID like '"+str+"%'";
 		Query query = session.createQuery(queryString);
 		query.setParameter("gid", groupID);
