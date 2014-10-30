@@ -7,6 +7,7 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 import org.springframework.stereotype.Repository;
 
+import com.qait.mathlay.enums.MemberStatus;
 import com.qait.mathplay.dao.domain.GameDetails;
 
 @Repository("gameDetailsDao")
@@ -35,11 +36,12 @@ public class GameDetailsDaoImpl extends GenericDaoImpl<GameDetails> implements
 		List<Object[]> list = new ArrayList<Object[]>();
 		Session session = getCurrentSession();
 		String queryStr = "SELECT u.userID, u.name, u.city, u.country, gd.level, gd.userScore, gm.status from GroupMember gm JOIN gm.group g "
-				+ "JOIN gm.member u JOIN u.gameDetails gd WHERE g.groupID = :gid and gd.game.gameId = :gameid "
+				+ "JOIN gm.member u JOIN u.gameDetails gd WHERE g.groupID = :gid and gd.game.gameId = :gameid and gm.status = :status"
 				+ " ORDER BY gd.userScore DESC";
 		Query query = session.createQuery(queryStr);
 		query.setParameter("gid", groupID);
 		query.setParameter("gameid", gameID);
+		query.setParameter("status", MemberStatus.ACCEPTED);
 		list = query.list();
 		return list;
 	}

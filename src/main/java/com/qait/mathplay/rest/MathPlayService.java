@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -45,6 +46,7 @@ import com.qait.mathplay.dto.LeaveGroupDTO;
 import com.qait.mathplay.dto.RecoverPasswordDTO;
 import com.qait.mathplay.dto.UpdateInvitationStatusDTO;
 import com.qait.mathplay.dto.UserGameScoreDTO;
+import com.qait.mathplay.dto.UserRankResponseDTO;
 import com.qait.mathplay.service.IGameDetailsService;
 import com.qait.mathplay.service.IGameService;
 import com.qait.mathplay.service.IGroupMemberService;
@@ -648,10 +650,10 @@ public class MathPlayService {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional
 	public Response getInvitationCount(@PathParam("userID") String userID) {
-		Long count = null;
+		Long [] count = new Long[1];
 		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
 		try {
-			count = memberService.getInvitationCount(userID);
+			count[0] = memberService.getInvitationCount(userID);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -724,23 +726,48 @@ public class MathPlayService {
 	@Transactional
 	public Response getUserPositionScoreInAllGames(@Valid LeaveGroupDTO dto) {
 		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
-		response.setCode("leaveGroup001");
-		response.setMessage(msgConfig.getProperty("leaveGroup001"));
-		
-		Map<Long, List<UserGameScoreDTO>> allUserMap = null; 
+		List<UserRankResponseDTO> responseDto = new ArrayList<UserRankResponseDTO>();
+
+		Map<Long, List<UserGameScoreDTO>> allUserMap = null;
 		Map<Long, Long> userMap = null;
-	
+
 		try {
-			allUserMap = detailsService.getScoreForEachGameByGroupForAllUsers(dto.getGroupID());
-			userMap = detailsService.getScoreForEachGameForUser(dto.getUserKey());
-			
+			allUserMap = detailsService
+					.getScoreForEachGameByGroupForAllUsers(dto.getGroupID());
+			userMap = detailsService.getScoreForEachGameForUser(dto
+					.getUserKey());
+
+			for (Entry<Long, Long> entry : userMap.entrySet()) {
+
+				Long userScore = entry.getValue();
+				UserRankResponseDTO uRankResponseDTO = null;
+				int rank = 1;
+				List<UserGameScoreDTO> list = allUserMap.get(entry.getKey());
+
+				for (UserGameScoreDTO dto2 : list) {
+					uRankResponseDTO = new UserRankResponseDTO();
+					uRankResponseDTO.setGameName(dto2.getGameName());
+					uRankResponseDTO.setGameClass(dto2.getGameClass());
+					long otherUserScore = dto2.getUserScore();
+					if (otherUserScore > userScore) {
+						rank++;
+					}
+				}
+
+				if (uRankResponseDTO != null) {
+					uRankResponseDTO.setRank(rank);
+					uRankResponseDTO.setScore(userScore);
+					responseDto.add(uRankResponseDTO);
+				}
+			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
-			response.setCode("leaveGroup002");
-			response.setMessage(msgConfig.getProperty("leaveGroup002"));
+			response.setCode("userRankInAllGames001");
+			response.setMessage(msgConfig.getProperty("userRankInAllGames001"));
 			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
 			throw new WebApplicationException(Response.ok(response).build());
 		}
-		return Response.ok(userMap).build();
+		return Response.ok(responseDto).build();
 	}
 }
