@@ -9,18 +9,23 @@ import com.qait.mathplay.dto.UserGameScoreDTO;
 public interface IGameDetailsService {
 
 	public void saveGameDetails(GameDetails details);
-	
+
 	public GameDetails getGameDetailsByUserAndGame(Long userID, Long gameId);
-	
+
 	public List<Object[]> getScoreForGroup(long groupID, long gameID);
-	
+
 	public List<Object[]> getTotalScoreForUser(long groupID);
-	
+
 	public List<UserGameScoreDTO> getScoreForGroupAllGames(long groupID);
-	
-	public Map<Long, List<UserGameScoreDTO>> getScoreForEachGameByGroupForAllUsers(long groupID);
-	
+
+	public Map<Long, List<UserGameScoreDTO>> getScoreForEachGameByGroupForAllUsers(
+			long groupID);
+
 	public List<UserGameScoreDTO> getScoreForUserAllGames(long userID);
-	
+
 	public Map<Long, Long> getScoreForEachGameForUser(long userID);
+
+	public List<Object[]> getUsereDetailsWithHighestScoreForGameInGroups(List<Long> groupIDList, long gameID);
+	
+	public List<Object[]> getUsereDetailsForGameInGroups(List<Long> groupIDList);
 }

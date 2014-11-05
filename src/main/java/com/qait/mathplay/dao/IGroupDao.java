@@ -17,4 +17,6 @@ public interface IGroupDao extends IGenericDao<Group> {
 	public User getGroupOwner(Long groupID);
 	
 	public List<GroupDTO> getGroupListForMember(String memberID);
+	
+	public List<GroupDTO> getGroupListForMemberAndAdmin(String memberID);
 }

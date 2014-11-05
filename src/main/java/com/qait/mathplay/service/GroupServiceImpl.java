@@ -50,4 +50,9 @@ public class GroupServiceImpl implements IGroupService {
 	public List<GroupDTO> getGroupListForMember(String memberID) {
 		return groupDao.getGroupListForMember(memberID);
 	}
+	
+	@Override
+	public List<GroupDTO> getGroupListForMemberAndAdmin(String memberID) {
+		return groupDao.getGroupListForMemberAndAdmin(memberID);
+	}
 }

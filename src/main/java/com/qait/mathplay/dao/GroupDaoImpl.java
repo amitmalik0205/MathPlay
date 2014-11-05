@@ -75,4 +75,19 @@ public class GroupDaoImpl extends GenericDaoImpl<Group> implements IGroupDao {
 		list = query.list();
 		return list;
 	}
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<GroupDTO> getGroupListForMemberAndAdmin(String memberID) {
+		Session session = getCurrentSession();
+		List<GroupDTO> list = new ArrayList<GroupDTO>();
+		String queryString = "Select new com.qait.mathplay.dto.GroupDTO(g.groupID, g.groupName, u.userID, u.name, u.city, u.country) "
+				+ " from GroupMember gm join gm.group g join gm.member m join g.groupOwner u where m.userID = :memberID "
+				+ " and gm.status <> :status";
+		Query query = session.createQuery(queryString);
+		query.setString("memberID", memberID);
+		query.setParameter("status", MemberStatus.WAITING);
+		list = query.list();
+		return list;
+	}
 }

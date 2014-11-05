@@ -10,6 +10,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -61,6 +62,9 @@ public class User implements Serializable {
 	
 	@Column(name = "name", nullable = false)
 	private String name;
+	
+	@ManyToMany(fetch = FetchType.LAZY, mappedBy = "users")
+	private Set<Notification> notifications = new HashSet<Notification>();
 
 	public Long getId() {
 		return id;
@@ -164,5 +168,13 @@ public class User implements Serializable {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+	
+	public Set<Notification> getNotifications() {
+		return notifications;
+	}
+
+	public void setNotifications(Set<Notification> notifications) {
+		this.notifications = notifications;
 	}
 }

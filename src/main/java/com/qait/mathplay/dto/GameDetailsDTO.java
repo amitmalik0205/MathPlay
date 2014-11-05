@@ -28,6 +28,16 @@ public class GameDetailsDTO implements Serializable {
 	@NotNull(message = "{GameDetailsDTO.gameclass.empty}")
 	@Length(min = 1, message = "{GameDetailsDTO.gameclass.empty}")
 	private String gameClass;
+	
+	private long gameID;
+	
+	private long userKey;
+	
+	private String name;
+	
+	private String city;
+	
+	private String country;
 
 	public String getLevel() {
 		return level;
@@ -67,5 +77,45 @@ public class GameDetailsDTO implements Serializable {
 
 	public void setGameClass(String gameClass) {
 		this.gameClass = gameClass;
+	}
+
+	public long getGameID() {
+		return gameID;
+	}
+
+	public void setGameID(long gameID) {
+		this.gameID = gameID;
+	}
+
+	public long getUserKey() {
+		return userKey;
+	}
+
+	public void setUserKey(long userKey) {
+		this.userKey = userKey;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getCity() {
+		return city;
+	}
+
+	public void setCity(String city) {
+		this.city = city;
+	}
+
+	public String getCountry() {
+		return country;
+	}
+
+	public void setCountry(String country) {
+		this.country = country;
 	}
 }

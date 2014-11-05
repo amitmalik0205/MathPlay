@@ -85,4 +85,38 @@ public class GameDetailsDaoImpl extends GenericDaoImpl<GameDetails> implements
 		list = query.list();
 		return list;
 	}
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<Object[]> getUsereDetailsWithHighestScoreForGameInGroups(List<Long> groupIDList, long gameID) {
+		List<Object[]> list = new ArrayList<Object[]>();
+		Session session = getCurrentSession();
+		String queryStr = "SELECT DISTINCT gd.userScore, u.id, u.userID, u.name, u.city, u.country from GroupMember gm JOIN gm.group g "
+				+ " JOIN gm.member u JOIN u.gameDetails gd WHERE g.groupID in (:gid) and gd.game.gameId = :gameid and gm.status = :status "
+				+ " ORDER BY gd.userScore desc";
+		Query query = session.createQuery(queryStr);
+/*		query.setFirstResult(0);
+		query.setMaxResults(1);*/
+		query.setParameterList("gid", groupIDList);
+		query.setParameter("gameid", gameID);
+		query.setParameter("status", MemberStatus.ACCEPTED);
+		list = query.list();
+		return list;
+	}
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<Object[]> getUsereDetailsForGameInGroups(List<Long> groupIDList) {
+		List<Object[]> list = new ArrayList<Object[]>();
+		Session session = getCurrentSession();
+		String queryStr = "SELECT DISTINCT u.id, u.userID, u.name, u.city, u.country from GroupMember gm JOIN gm.group g "
+				+ " JOIN gm.member u WHERE g.groupID in (:gid) and gm.status = :status ";
+		Query query = session.createQuery(queryStr);
+		query.setParameterList("gid", groupIDList);
+		query.setParameter("status", MemberStatus.ACCEPTED);
+		list = query.list();
+		return list;
+	
+		
+	}
 }
