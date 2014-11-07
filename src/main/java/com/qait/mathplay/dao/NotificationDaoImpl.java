@@ -28,4 +28,26 @@ public class NotificationDaoImpl extends GenericDaoImpl<Notification> implements
 		list = query.list();
 		return list;
 	}
+	
+	@Override
+	public void deleteNotification(List<Long> notificationIDArr, long userKey) {
+		Session session = getCurrentSession();
+		String queryString = "DELETE FROM user_notification where user_id=:uid and notification_id in (:nid)";
+		Query query = session.createSQLQuery(queryString);
+		query.setParameter("uid", userKey);
+		query.setParameterList("nid", notificationIDArr);
+		query.executeUpdate();
+	}
+	
+	@Override
+	public Notification getNotificationForGame(String gameName, String gameClass) {
+		Session session = getCurrentSession();
+		Notification notification = null;
+		String queryString = "FROM Notification n where n.gameName = :gname and n.gameClass = :gclass";
+		Query query = session.createQuery(queryString);
+		query.setParameter("gname", gameName);
+		query.setParameter("gclass", gameClass);
+		notification = (Notification)query.uniqueResult();
+		return notification;
+	}
 }

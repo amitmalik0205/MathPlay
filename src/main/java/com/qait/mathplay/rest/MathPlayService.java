@@ -37,6 +37,7 @@ import com.qait.mathplay.dao.domain.Notification;
 import com.qait.mathplay.dao.domain.SecurityQuestion;
 import com.qait.mathplay.dao.domain.User;
 import com.qait.mathplay.dto.CreateGroupResponseDTO;
+import com.qait.mathplay.dto.DeleteNotificationDTO;
 import com.qait.mathplay.dto.GameDetailsDTO;
 import com.qait.mathplay.dto.GetInvitationsDTO;
 import com.qait.mathplay.dto.GroupDTO;
@@ -199,11 +200,11 @@ public class MathPlayService {
 			@NotNull(message = "{SearchUser.groupid.empty}") @QueryParam("groupID") long groupID) {
 		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
 		List<GroupMemberInfoDTO> fullList = null;
-
+		List<GroupMemberInfoDTO> groupList = null;
+		
 		try {
 
-			List<GroupMemberInfoDTO> groupList = userService
-					.getMatchingUserIDForGroup(searchStr, groupID);
+			groupList = userService.getMatchingUserIDForGroup(searchStr, groupID);
 
 			fullList = new CopyOnWriteArrayList<GroupMemberInfoDTO>(
 					userService.getMatchingUserID(searchStr));
@@ -225,7 +226,7 @@ public class MathPlayService {
 			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
 			throw new WebApplicationException(Response.ok(response).build());
 		}
-		return Response.ok(fullList).build();
+		return Response.ok(groupList).build();
 	}
 
 	@POST
@@ -292,58 +293,66 @@ public class MathPlayService {
 	public Response saveUserGameScore(@Valid GameDetailsDTO details) {
 		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
 		try {
-			response.setCode("saveUserScore001");
-			response.setMessage(msgConfig.getProperty("saveUserScore001"));
+			
+			if(details.getUserScore() > 0) {
+				response.setCode("saveUserScore001");
+				response.setMessage(msgConfig.getProperty("saveUserScore001"));
 
-			User savedUser = userService.getUserByUserId(details.getUserID());
+				User savedUser = userService.getUserByUserId(details.getUserID());
 
-			if (savedUser == null) {
-				response.setCode("saveUserScore003");
-				response.setMessage(msgConfig.getProperty("saveUserScore003"));
+				if (savedUser == null) {
+					response.setCode("saveUserScore003");
+					response.setMessage(msgConfig.getProperty("saveUserScore003"));
 
-			} else {
-
-				String gameName = details.getGameName();
-				String gameClass = details.getGameClass();
-				Game savedGame = gameService.getGameByNameAndClass(gameName,
-						gameClass);
-
-				if (savedGame == null) {
-					Game newGame = new Game();
-					newGame.setGameClass(gameClass);
-					newGame.setGameName(gameName);
-
-					gameService.saveGame(newGame);
-				}
-
-				savedGame = gameService.getGameByNameAndClass(gameName,
-						gameClass);
-
-				GameDetails savedGameDetails = detailsService
-						.getGameDetailsByUserAndGame(savedUser.getId(),
-								savedGame.getGameId());
-
-				if (savedGameDetails == null) {
-					GameDetails gameDetails = new GameDetails();
-					gameDetails.setGame(savedGame);
-					gameDetails.setUser(savedUser);
-					gameDetails.setLevel(details.getLevel());
-					gameDetails.setUserScore(details.getUserScore());
-					detailsService.saveGameDetails(gameDetails);
 				} else {
-					savedGameDetails.setLevel(details.getLevel());
-					savedGameDetails.setUserScore(details.getUserScore());
-					detailsService.saveGameDetails(savedGameDetails);
+
+					String gameName = details.getGameName();
+					String gameClass = details.getGameClass();
+					Game savedGame = gameService.getGameByNameAndClass(gameName,
+							gameClass);
+
+					if (savedGame == null) {
+						Game newGame = new Game();
+						newGame.setGameClass(gameClass);
+						newGame.setGameName(gameName);
+
+						gameService.saveGame(newGame);
+					}
+
+					savedGame = gameService.getGameByNameAndClass(gameName,
+							gameClass);
+
+					GameDetails savedGameDetails = detailsService
+							.getGameDetailsByUserAndGame(savedUser.getId(),
+									savedGame.getGameId());
+
+					if (savedGameDetails == null) {
+						GameDetails gameDetails = new GameDetails();
+						gameDetails.setGame(savedGame);
+						gameDetails.setUser(savedUser);
+						gameDetails.setLevel(details.getLevel());
+						gameDetails.setUserScore(details.getUserScore());
+						detailsService.saveGameDetails(gameDetails);
+					} else {
+						savedGameDetails.setLevel(details.getLevel());
+						savedGameDetails.setUserScore(details.getUserScore());
+						detailsService.saveGameDetails(savedGameDetails);
+					}
+
+					details.setGameID(savedGame.getGameId());
+					details.setUserKey(savedUser.getId());
+					details.setName(savedUser.getName());
+					details.setCity(savedUser.getCity());
+					details.setCountry(savedUser.getCountry());
+
+					return Response.ok(details).build();
 				}
-
-				details.setGameID(savedGame.getGameId());
-				details.setUserKey(savedUser.getId());
-				details.setName(savedUser.getName());
-				details.setCity(savedUser.getCity());
-				details.setCountry(savedUser.getCountry());
-
-				return Response.ok(details).build();
+			} else {
+				
+				response.setCode("saveUserScore004");
+				response.setMessage(msgConfig.getProperty("saveUserScore004"));
 			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setCode("saveUserScore002");
@@ -808,7 +817,9 @@ public class MathPlayService {
 	@Transactional(rollbackFor = Exception.class)
 	public Response saveHighScoreNotification(GameDetailsDTO dto) {
 		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
-
+		response.setCode("saveNotification003");
+		response.setMessage(msgConfig.getProperty("saveNotification003"));
+		
 		try {
 			List<GroupDTO> groupList = groupService
 					.getGroupListForMemberAndAdmin(dto.getUserID());
@@ -835,29 +846,52 @@ public class MathPlayService {
 					oldHighestScore = (Long) obj[0];
 					arr = obj;
 				}*/
+				
+				String gameName = dto.getGameName();
+				String gameClass = dto.getGameClass();
+				long newScore = dto.getUserScore();
 
-				if (dto.getUserScore() >= highestScore) {
-					Notification notification = new Notification();
-					notification.setGameName(dto.getGameName());
-					notification.setGameClass(dto.getGameClass());
-					notification.setNewUserName(dto.getName());
-					notification.setNewUserCity(dto.getCity());
-					notification.setNewUserCountry(dto.getCountry());
-					notification.setNewScore(dto.getUserScore());
-					/*notification.setOldUserName((String)arr[3]);
-					notification.setOldUserCity((String)arr[4]);
-					notification.setOldUserCountry((String)arr[5]);
-					notification.setOldScore(oldHighestScore);*/
+				if (newScore!=0 && newScore >= highestScore) {
 					
-					List<Object[]> userList = detailsService.getUsereDetailsForGameInGroups(groupIDList);
+					long secondHighestScore = 0;
 					
-					for(Object[] obj : userList) {
-						if(!((Long)obj[0] == dto.getUserKey())) {
-							User savedUser = userService.getUser((Long)obj[0]);
-							notification.getUsers().add(savedUser);
-							notificationService.saveNotification(notification);
-							savedUser = null;
+					if(list.size() > 1) {
+						Object arr[] = list.get(1);
+						secondHighestScore = (Long)arr[0];
+					}
+					
+					if(secondHighestScore != newScore) {
+						
+						Notification notification = notificationService.getNotificationForGame(gameName, gameClass);
+						
+						if(notification == null) {
+							notification = new Notification();
+							notification.setGameName(gameName);
+							notification.setGameClass(gameClass);
 						}
+						
+						notification.setNewUserName(dto.getName());
+						notification.setNewUserCity(dto.getCity());
+						notification.setNewUserCountry(dto.getCountry());
+						notification.setNewScore(dto.getUserScore());
+						/*notification.setOldUserName((String)arr[3]);
+						notification.setOldUserCity((String)arr[4]);
+						notification.setOldUserCountry((String)arr[5]);
+						notification.setOldScore(oldHighestScore);*/
+						
+						List<Object[]> userList = detailsService.getUsereDetailsForGameInGroups(groupIDList);
+						
+						for(Object[] obj : userList) {
+							if(!((Long)obj[0] == dto.getUserKey())) {
+								User savedUser = userService.getUser((Long)obj[0]);
+								notification.getUsers().add(savedUser);
+								notificationService.saveNotification(notification);
+								savedUser = null;
+							}
+						}
+						
+						response.setCode("saveNotification002");
+						response.setMessage(msgConfig.getProperty("saveNotification002"));
 					}
 				}
 			}
@@ -924,11 +958,35 @@ public class MathPlayService {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			response.setCode("countNotification001");
-			response.setMessage(msgConfig.getProperty("countNotification001"));
+			response.setCode("getNotifications001");
+			response.setMessage(msgConfig.getProperty("getNotifications001"));
 			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
 			throw new WebApplicationException(Response.ok(response).build());
 		}
 		return Response.ok(dtoList).build();
+	}
+	
+	@POST
+	@Path("delete-notifications")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional(rollbackFor = Exception.class)
+	public Response deleteNotifications(DeleteNotificationDTO dto) {
+		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
+		response.setCode("saveNotification002");
+		response.setMessage(msgConfig.getProperty("saveNotification002"));
+		
+		try {
+			
+			notificationService.deleteUserNotification(dto.getNotificationIDArr(), dto.getUserKey());
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setCode("deleteNotifications001");
+			response.setMessage(msgConfig.getProperty("deleteNotifications001"));
+			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
+			throw new WebApplicationException(Response.ok(response).build());
+		}
+		return Response.ok(response).build();
 	}
 }

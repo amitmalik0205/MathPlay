@@ -15,11 +15,21 @@ public class NotificationServiceImpl implements INotificationService {
 	private INotificationDao notificationDao;
 	
 	public void saveNotification(Notification notification) {
-		notificationDao.create(notification);
+		notificationDao.saveOrUpdate(notification);
 	}
 	
 	@Override
 	public List<Notification> getNotificationForUser(long userID) {
 		return notificationDao.getNotificationForUser(userID);
+	}
+
+	@Override
+	public void deleteUserNotification(List<Long> notificationIDArr, long userKey) {
+		 notificationDao.deleteNotification(notificationIDArr, userKey);
+	}
+	
+	@Override
+	public Notification getNotificationForGame(String gameName, String gameClass) {
+		return notificationDao.getNotificationForGame(gameName, gameClass);
 	}
 }
