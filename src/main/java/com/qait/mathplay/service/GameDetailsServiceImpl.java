@@ -108,4 +108,9 @@ public class GameDetailsServiceImpl implements IGameDetailsService {
 	public List<Object[]> getUsereDetailsForGameInGroups(List<Long> groupIDList) {
 		return gameDetailsDao.getUsereDetailsForGameInGroups(groupIDList);
 	}
+	
+	@Override
+	public List<GameDetails> getAllGameDetailsForUser(long userID) {
+		return gameDetailsDao.getAllGameDetailsForUser(userID);
+	}
 }

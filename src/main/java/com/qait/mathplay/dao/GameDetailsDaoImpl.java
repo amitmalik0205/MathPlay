@@ -116,7 +116,17 @@ public class GameDetailsDaoImpl extends GenericDaoImpl<GameDetails> implements
 		query.setParameter("status", MemberStatus.ACCEPTED);
 		list = query.list();
 		return list;
+	}
 	
-		
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<GameDetails> getAllGameDetailsForUser(long userID) {
+		List<GameDetails> list = new ArrayList<GameDetails>();
+		Session session = getCurrentSession();
+		String queryStr = "FROM GameDetails gd JOIN FETCH gd.game g WHERE gd.user.id = :uid ";
+		Query query = session.createQuery(queryStr);
+		query.setParameter("uid", userID);
+		list = query.list();
+		return list;
 	}
 }

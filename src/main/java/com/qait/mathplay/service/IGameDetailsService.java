@@ -28,4 +28,6 @@ public interface IGameDetailsService {
 	public List<Object[]> getUsereDetailsWithHighestScoreForGameInGroups(List<Long> groupIDList, long gameID);
 	
 	public List<Object[]> getUsereDetailsForGameInGroups(List<Long> groupIDList);
+	
+	public List<GameDetails> getAllGameDetailsForUser(long userID);
 }

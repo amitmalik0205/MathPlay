@@ -47,6 +47,7 @@ import com.qait.mathplay.dto.GroupScoreDTO;
 import com.qait.mathplay.dto.LeaveGroupDTO;
 import com.qait.mathplay.dto.NotificationDTO;
 import com.qait.mathplay.dto.RecoverPasswordDTO;
+import com.qait.mathplay.dto.SyncScoreDTO;
 import com.qait.mathplay.dto.UpdateInvitationStatusDTO;
 import com.qait.mathplay.dto.UserDTO;
 import com.qait.mathplay.dto.UserGameScoreDTO;
@@ -128,16 +129,26 @@ public class MathPlayService {
 	public Response registerUser(User user) {
 		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
 		try {
-
-			response.setCode("rsgisterUser001");
-			response.setMessage(msgConfig.getProperty("rsgisterUser001"));
-
+			
 			if (userService.getUserByUserId(user.getUserID()) != null) {
 				response.setCode("rsgisterUser003");
 				response.setMessage(msgConfig.getProperty("rsgisterUser003"));
 			} else {
 				userService.saveUser(user);
 			}
+			
+			User savedUser = userService.authenticateUser(user.getUserID(), user.getPassword());
+			if (savedUser != null) {
+				UserDTO dto = new UserDTO();
+				dto.setUserKey(savedUser.getId());
+				dto.setUserID(savedUser.getUserID());
+				dto.setName(savedUser.getName());
+				dto.setCity(savedUser.getCity());
+				dto.setCountry(savedUser.getCountry());
+
+				return Response.ok(dto).build();
+			} 
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setCode("rsgisterUser002");
@@ -988,5 +999,36 @@ public class MathPlayService {
 			throw new WebApplicationException(Response.ok(response).build());
 		}
 		return Response.ok(response).build();
+	}
+	
+	@GET
+	@Path("sync-user-scores/{userKey}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response syncUserScores(@PathParam("userKey") long userKey) {
+		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
+		List<SyncScoreDTO> list = new ArrayList<SyncScoreDTO>();
+
+		try {
+			List<GameDetails> detailList = detailsService.getAllGameDetailsForUser(userKey);
+			for(GameDetails details : detailList) {
+				SyncScoreDTO dto = new SyncScoreDTO();
+				Game game = details.getGame();
+				dto.setGameClass(game.getGameClass());
+				dto.setGameName(game.getGameName());
+				dto.setScore(details.getUserScore());
+				dto.setLevel(details.getLevel());
+				list.add(dto);
+				game=null;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setCode("syncUserScores001");
+			response.setMessage(msgConfig.getProperty("syncUserScores001"));
+			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
+			throw new WebApplicationException(Response.ok(response).build());
+		}
+		return Response.ok(list).build();
 	}
 }
