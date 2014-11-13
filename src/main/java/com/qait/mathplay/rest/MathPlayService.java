@@ -135,19 +135,19 @@ public class MathPlayService {
 				response.setMessage(msgConfig.getProperty("rsgisterUser003"));
 			} else {
 				userService.saveUser(user);
-			}
-			
-			User savedUser = userService.authenticateUser(user.getUserID(), user.getPassword());
-			if (savedUser != null) {
-				UserDTO dto = new UserDTO();
-				dto.setUserKey(savedUser.getId());
-				dto.setUserID(savedUser.getUserID());
-				dto.setName(savedUser.getName());
-				dto.setCity(savedUser.getCity());
-				dto.setCountry(savedUser.getCountry());
+				
+				User savedUser = userService.authenticateUser(user.getUserID(), user.getPassword());
+				if (savedUser != null) {
+					UserDTO dto = new UserDTO();
+					dto.setUserKey(savedUser.getId());
+					dto.setUserID(savedUser.getUserID());
+					dto.setName(savedUser.getName());
+					dto.setCity(savedUser.getCity());
+					dto.setCountry(savedUser.getCountry());
 
-				return Response.ok(dto).build();
-			} 
+					return Response.ok(dto).build();
+				} 
+			}
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -984,8 +984,8 @@ public class MathPlayService {
 	@Transactional(rollbackFor = Exception.class)
 	public Response deleteNotifications(DeleteNotificationDTO dto) {
 		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
-		response.setCode("saveNotification002");
-		response.setMessage(msgConfig.getProperty("saveNotification002"));
+		response.setCode("deleteNotifications002");
+		response.setMessage(msgConfig.getProperty("deleteNotifications002"));
 		
 		try {
 			
