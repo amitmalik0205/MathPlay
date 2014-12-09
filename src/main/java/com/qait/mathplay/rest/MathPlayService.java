@@ -130,13 +130,16 @@ public class MathPlayService {
 		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
 		try {
 			
-			if (userService.getUserByUserId(user.getUserID()) != null) {
+			User savedUser = null;
+			savedUser = userService.getUserByUserId(user.getUserID());
+			
+			if (savedUser != null) {
 				response.setCode("rsgisterUser003");
 				response.setMessage(msgConfig.getProperty("rsgisterUser003"));
 			} else {
 				userService.saveUser(user);
 				
-				User savedUser = userService.authenticateUser(user.getUserID(), user.getPassword());
+				savedUser = userService.authenticateUser(user.getUserID(), user.getPassword());
 				if (savedUser != null) {
 					UserDTO dto = new UserDTO();
 					dto.setUserKey(savedUser.getId());
@@ -169,20 +172,22 @@ public class MathPlayService {
 		try {
 			User savedUser = userService.authenticateUser(user.getUserID(),
 					user.getPassword());
+			
 			if (savedUser != null) {
-				UserDTO dto = new UserDTO();
-				dto.setUserKey(savedUser.getId());
-				dto.setUserID(savedUser.getUserID());
-				dto.setName(savedUser.getName());
-				dto.setCity(savedUser.getCity());
-				dto.setCountry(savedUser.getCountry());
+				if(savedUser.getPassword().equals(user.getPassword()) && savedUser.getUserID().equals(user.getUserID())) {
+					UserDTO dto = new UserDTO();
+					dto.setUserKey(savedUser.getId());
+					dto.setUserID(savedUser.getUserID());
+					dto.setName(savedUser.getName());
+					dto.setCity(savedUser.getCity());
+					dto.setCountry(savedUser.getCountry());
 
-				return Response.ok(dto).build();
-
-			} else {
-				response.setCode("signIn002");
-				response.setMessage(msgConfig.getProperty("signIn002"));
+					return Response.ok(dto).build();
+				}
 			}
+			
+			response.setCode("signIn002");
+			response.setMessage(msgConfig.getProperty("signIn002"));
 
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -3,8 +3,10 @@ package com.qait.mathplay.dao;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 
 import com.qait.mathplay.dao.domain.User;
@@ -31,14 +33,19 @@ public class UserDaoImpl extends GenericDaoImpl<User> implements IUserDao {
 	
 	@Override
 	public User getUserByUserId(String id) {
-		return getByProperty("userID", id);
+		Session session = getCurrentSession();
+		Criteria criteria = session.createCriteria(User.class);
+		criteria.add(Restrictions.eq("userID", id));
+		User user = null;
+		user = (User) criteria.uniqueResult();
+		return user;
 	}
 	
 	@Override
 	public User authenticateUser(String userId, String password) {
 		Session session = getCurrentSession();
 		User user = null;
-		String queryString = "from User where userID = :userId and password = :pwd";
+		String queryString = "from User u where u.userID = :userId and u.password = :pwd";
 		Query query = session.createQuery(queryString);
 		query.setString("userId", userId);
 		query.setString("pwd", password);

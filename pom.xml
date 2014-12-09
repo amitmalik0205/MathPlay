@@ -26,7 +26,7 @@
 			<artifactId>jersey-container-servlet-core</artifactId>
 			<version>${jersey-version}</version>
 		</dependency>
-		
+
 		<!-- Jersey JSON support -->
 		<dependency>
 			<groupId>org.glassfish.jersey.media</groupId>
@@ -34,7 +34,7 @@
 			<version>${jersey-version}</version>
 		</dependency>
 
-		<!-- Jersey Spring support-->
+		<!-- Jersey Spring support -->
 		<dependency>
 			<groupId>org.glassfish.jersey.ext</groupId>
 			<artifactId>jersey-spring3</artifactId>
@@ -45,6 +45,13 @@
 		<dependency>
 			<groupId>org.glassfish.jersey.ext</groupId>
 			<artifactId>jersey-bean-validation</artifactId>
+			<version>${jersey-version}</version>
+		</dependency>
+
+		<!-- Oauth -->
+		<dependency>
+			<groupId>org.glassfish.jersey.security</groupId>
+			<artifactId>oauth1-server</artifactId>
 			<version>${jersey-version}</version>
 		</dependency>
 
@@ -117,12 +124,8 @@
 		</dependency>
 
 		<!-- Apple push notification -->
-		<!-- <dependency>
-		    <groupId>com.relayrides</groupId>
-		    <artifactId>pushy</artifactId>
-		    <version>0.4</version>
-		</dependency>              					         
- -->
+		<!-- <dependency> <groupId>com.relayrides</groupId> <artifactId>pushy</artifactId> 
+			<version>0.4</version> </dependency> -->
 	</dependencies>
 	<build>
 
