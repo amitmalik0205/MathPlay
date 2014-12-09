@@ -1,5 +1,6 @@
 package com.qait.mathplay.service;
 
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,7 @@ public class UserServiceImpl implements IUserService {
 	
 	
 	public void saveUser(User user) {
+		user.setUpdated(new Date());
 		userDao.create(user);
 	}
 	

@@ -1,8 +1,10 @@
 package com.qait.mathplay.dto;
 
 import java.io.Serializable;
+import java.util.Date;
 
 import com.qait.mathlay.enums.MemberStatus;
+import com.qait.mathlay.enums.USER_STATUS_TYPE;
 
 public class GroupMemberInfoDTO implements Serializable {
 
@@ -19,7 +21,9 @@ public class GroupMemberInfoDTO implements Serializable {
 	private String country;
 	
 	private MemberStatus status;
-
+	
+	private USER_STATUS_TYPE userStatus;
+	
 	public GroupMemberInfoDTO() {
 		// TODO Auto-generated constructor stub
 	}
@@ -89,4 +93,13 @@ public class GroupMemberInfoDTO implements Serializable {
 	public void setCountry(String country) {
 		this.country = country;
 	}
+	
+	public USER_STATUS_TYPE getUserStatus() {
+		return userStatus;
+	}
+
+	public void setUserStatus(USER_STATUS_TYPE userStatus) {
+		this.userStatus = userStatus;
+	}
+
 } 

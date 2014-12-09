@@ -2,6 +2,7 @@ package com.qait.mathplay.rest;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -89,7 +90,7 @@ public class MathPlayService {
 
 	@Autowired
 	private IGameDetailsService detailsService;
-	
+
 	@Autowired
 	private INotificationService notificationService;
 
@@ -129,17 +130,18 @@ public class MathPlayService {
 	public Response registerUser(User user) {
 		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
 		try {
-			
+
 			User savedUser = null;
 			savedUser = userService.getUserByUserId(user.getUserID());
-			
+
 			if (savedUser != null) {
 				response.setCode("rsgisterUser003");
 				response.setMessage(msgConfig.getProperty("rsgisterUser003"));
 			} else {
 				userService.saveUser(user);
-				
-				savedUser = userService.authenticateUser(user.getUserID(), user.getPassword());
+
+				savedUser = userService.authenticateUser(user.getUserID(),
+						user.getPassword());
 				if (savedUser != null) {
 					UserDTO dto = new UserDTO();
 					dto.setUserKey(savedUser.getId());
@@ -149,9 +151,9 @@ public class MathPlayService {
 					dto.setCountry(savedUser.getCountry());
 
 					return Response.ok(dto).build();
-				} 
+				}
 			}
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setCode("rsgisterUser002");
@@ -172,9 +174,10 @@ public class MathPlayService {
 		try {
 			User savedUser = userService.authenticateUser(user.getUserID(),
 					user.getPassword());
-			
+
 			if (savedUser != null) {
-				if(savedUser.getPassword().equals(user.getPassword()) && savedUser.getUserID().equals(user.getUserID())) {
+				if (savedUser.getPassword().equals(user.getPassword())
+						&& savedUser.getUserID().equals(user.getUserID())) {
 					UserDTO dto = new UserDTO();
 					dto.setUserKey(savedUser.getId());
 					dto.setUserID(savedUser.getUserID());
@@ -185,7 +188,7 @@ public class MathPlayService {
 					return Response.ok(dto).build();
 				}
 			}
-			
+
 			response.setCode("signIn002");
 			response.setMessage(msgConfig.getProperty("signIn002"));
 
@@ -217,10 +220,11 @@ public class MathPlayService {
 		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
 		List<GroupMemberInfoDTO> fullList = null;
 		List<GroupMemberInfoDTO> groupList = null;
-		
+
 		try {
 
-			groupList = userService.getMatchingUserIDForGroup(searchStr, groupID);
+			groupList = userService.getMatchingUserIDForGroup(searchStr,
+					groupID);
 
 			fullList = new CopyOnWriteArrayList<GroupMemberInfoDTO>(
 					userService.getMatchingUserID(searchStr));
@@ -309,23 +313,25 @@ public class MathPlayService {
 	public Response saveUserGameScore(@Valid GameDetailsDTO details) {
 		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
 		try {
-			
-			if(details.getUserScore() > 0) {
+
+			if (details.getUserScore() > 0) {
 				response.setCode("saveUserScore001");
 				response.setMessage(msgConfig.getProperty("saveUserScore001"));
 
-				User savedUser = userService.getUserByUserId(details.getUserID());
+				User savedUser = userService.getUserByUserId(details
+						.getUserID());
 
 				if (savedUser == null) {
 					response.setCode("saveUserScore003");
-					response.setMessage(msgConfig.getProperty("saveUserScore003"));
+					response.setMessage(msgConfig
+							.getProperty("saveUserScore003"));
 
 				} else {
 
 					String gameName = details.getGameName();
 					String gameClass = details.getGameClass();
-					Game savedGame = gameService.getGameByNameAndClass(gameName,
-							gameClass);
+					Game savedGame = gameService.getGameByNameAndClass(
+							gameName, gameClass);
 
 					if (savedGame == null) {
 						Game newGame = new Game();
@@ -364,11 +370,11 @@ public class MathPlayService {
 					return Response.ok(details).build();
 				}
 			} else {
-				
+
 				response.setCode("saveUserScore004");
 				response.setMessage(msgConfig.getProperty("saveUserScore004"));
 			}
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setCode("saveUserScore002");
@@ -461,6 +467,67 @@ public class MathPlayService {
 			throw new WebApplicationException(Response.ok(response).build());
 		}
 		return Response.ok(groupList).build();
+	}
+
+	@GET
+	@Path("friend-list")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response getFriendList(@QueryParam("userID") String userId) {
+
+		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
+		List<GroupMemberInfoDTO> membersInfoList = new ArrayList<>();
+		try {
+			List<GroupDTO> groupList = new ArrayList<GroupDTO>();
+			groupList = groupService.getGroupListForMemberAndAdmin(userId);
+
+			for (GroupDTO group : groupList) {
+				membersInfoList.addAll(memberService
+						.getMembersInfoByGroup(group.getGroupID()));
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setCode("getOwnerGroupList001");
+			response.setMessage(msgConfig.getProperty("getOwnerGroupList001"));
+			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
+			throw new WebApplicationException(Response.ok(response).build());
+		}
+		return Response.ok(membersInfoList).build();
+	}
+
+	@GET
+	@Path("update-my-status")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public Response updateStatus(@QueryParam("userID") String userId) {
+
+		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
+		List<GroupMemberInfoDTO> membersInfoList = new ArrayList<>();
+		try {
+
+			User user = userService.getUserByUserId(userId);
+			user.setUpdated(new Date());
+			userService.saveUser(user);
+
+			List<GroupDTO> groupList = new ArrayList<GroupDTO>();
+			groupList = groupService.getGroupListForMemberAndAdmin(userId);
+
+			for (GroupDTO group : groupList) {
+				membersInfoList.addAll(memberService
+						.getMembersInfoByGroup(group.getGroupID()));
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setCode("getOwnerGroupList001");
+			response.setMessage(msgConfig.getProperty("getOwnerGroupList001"));
+			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
+			throw new WebApplicationException(Response.ok(response).build());
+		}
+		return Response.ok(membersInfoList).build();
 	}
 
 	@POST
@@ -835,7 +902,7 @@ public class MathPlayService {
 		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
 		response.setCode("saveNotification003");
 		response.setMessage(msgConfig.getProperty("saveNotification003"));
-		
+
 		try {
 			List<GroupDTO> groupList = groupService
 					.getGroupListForMemberAndAdmin(dto.getUserID());
@@ -846,68 +913,74 @@ public class MathPlayService {
 					groupIDList.add(dto2.getGroupID());
 				}
 
-				//Get details of users with score in the game.
-				List<Object[]> list = detailsService.getUsereDetailsWithHighestScoreForGameInGroups(groupIDList, dto.getGameID());
+				// Get details of users with score in the game.
+				List<Object[]> list = detailsService
+						.getUsereDetailsWithHighestScoreForGameInGroups(
+								groupIDList, dto.getGameID());
 				long highestScore = 0;
-				if(list.size() > 0) {
+				if (list.size() > 0) {
 					Object arr[] = list.get(0);
-					highestScore = (Long)arr[0];
+					highestScore = (Long) arr[0];
 				}
-				
-				
-				/*for(Object[] obj : list) {
-					if(dto.getUserKey() == (Long)obj[1]) {
-						continue;
-					}
-					oldHighestScore = (Long) obj[0];
-					arr = obj;
-				}*/
-				
+
+				/*
+				 * for(Object[] obj : list) { if(dto.getUserKey() ==
+				 * (Long)obj[1]) { continue; } oldHighestScore = (Long) obj[0];
+				 * arr = obj; }
+				 */
+
 				String gameName = dto.getGameName();
 				String gameClass = dto.getGameClass();
 				long newScore = dto.getUserScore();
 
-				if (newScore!=0 && newScore >= highestScore) {
-					
+				if (newScore != 0 && newScore >= highestScore) {
+
 					long secondHighestScore = 0;
-					
-					if(list.size() > 1) {
+
+					if (list.size() > 1) {
 						Object arr[] = list.get(1);
-						secondHighestScore = (Long)arr[0];
+						secondHighestScore = (Long) arr[0];
 					}
-					
-					if(secondHighestScore != newScore) {
-						
-						Notification notification = notificationService.getNotificationForGame(gameName, gameClass);
-						
-						if(notification == null) {
+
+					if (secondHighestScore != newScore) {
+
+						Notification notification = notificationService
+								.getNotificationForGame(gameName, gameClass);
+
+						if (notification == null) {
 							notification = new Notification();
 							notification.setGameName(gameName);
 							notification.setGameClass(gameClass);
 						}
-						
+
 						notification.setNewUserName(dto.getName());
 						notification.setNewUserCity(dto.getCity());
 						notification.setNewUserCountry(dto.getCountry());
 						notification.setNewScore(dto.getUserScore());
-						/*notification.setOldUserName((String)arr[3]);
-						notification.setOldUserCity((String)arr[4]);
-						notification.setOldUserCountry((String)arr[5]);
-						notification.setOldScore(oldHighestScore);*/
-						
-						List<Object[]> userList = detailsService.getUsereDetailsForGameInGroups(groupIDList);
-						
-						for(Object[] obj : userList) {
-							if(!((Long)obj[0] == dto.getUserKey())) {
-								User savedUser = userService.getUser((Long)obj[0]);
+						/*
+						 * notification.setOldUserName((String)arr[3]);
+						 * notification.setOldUserCity((String)arr[4]);
+						 * notification.setOldUserCountry((String)arr[5]);
+						 * notification.setOldScore(oldHighestScore);
+						 */
+
+						List<Object[]> userList = detailsService
+								.getUsereDetailsForGameInGroups(groupIDList);
+
+						for (Object[] obj : userList) {
+							if (!((Long) obj[0] == dto.getUserKey())) {
+								User savedUser = userService
+										.getUser((Long) obj[0]);
 								notification.getUsers().add(savedUser);
-								notificationService.saveNotification(notification);
+								notificationService
+										.saveNotification(notification);
 								savedUser = null;
 							}
 						}
-						
+
 						response.setCode("saveNotification002");
-						response.setMessage(msgConfig.getProperty("saveNotification002"));
+						response.setMessage(msgConfig
+								.getProperty("saveNotification002"));
 					}
 				}
 			}
@@ -921,13 +994,14 @@ public class MathPlayService {
 		}
 		return Response.ok(response).build();
 	}
-	
+
 	@GET
 	@Path("get-notification-count/{userKey}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional(rollbackFor = Exception.class)
-	public Response getNotificationCountForUser(@PathParam("userKey") long userKey) {
+	public Response getNotificationCountForUser(
+			@PathParam("userKey") long userKey) {
 		List<Notification> list = null;
 		Long[] count = new Long[1];
 		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
@@ -945,7 +1019,7 @@ public class MathPlayService {
 		}
 		return Response.ok(count).build();
 	}
-	
+
 	@GET
 	@Path("get-notifications/{userKey}")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -958,8 +1032,8 @@ public class MathPlayService {
 		try {
 
 			list = notificationService.getNotificationForUser(userKey);
-			if(list.size() > 0) {
-				for(Notification notification : list) {
+			if (list.size() > 0) {
+				for (Notification notification : list) {
 					NotificationDTO dto = new NotificationDTO();
 					dto.setNotificationID(notification.getNotificationID());
 					dto.setGameClass(notification.getGameClass());
@@ -981,7 +1055,7 @@ public class MathPlayService {
 		}
 		return Response.ok(dtoList).build();
 	}
-	
+
 	@POST
 	@Path("delete-notifications")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -991,11 +1065,12 @@ public class MathPlayService {
 		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
 		response.setCode("deleteNotifications002");
 		response.setMessage(msgConfig.getProperty("deleteNotifications002"));
-		
+
 		try {
-			
-			notificationService.deleteUserNotification(dto.getNotificationIDArr(), dto.getUserKey());
-			
+
+			notificationService.deleteUserNotification(
+					dto.getNotificationIDArr(), dto.getUserKey());
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setCode("deleteNotifications001");
@@ -1005,7 +1080,7 @@ public class MathPlayService {
 		}
 		return Response.ok(response).build();
 	}
-	
+
 	@GET
 	@Path("sync-user-scores/{userKey}")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -1016,8 +1091,9 @@ public class MathPlayService {
 		List<SyncScoreDTO> list = new ArrayList<SyncScoreDTO>();
 
 		try {
-			List<GameDetails> detailList = detailsService.getAllGameDetailsForUser(userKey);
-			for(GameDetails details : detailList) {
+			List<GameDetails> detailList = detailsService
+					.getAllGameDetailsForUser(userKey);
+			for (GameDetails details : detailList) {
 				SyncScoreDTO dto = new SyncScoreDTO();
 				Game game = details.getGame();
 				dto.setGameClass(game.getGameClass());
@@ -1025,7 +1101,7 @@ public class MathPlayService {
 				dto.setScore(details.getUserScore());
 				dto.setLevel(details.getLevel());
 				list.add(dto);
-				game=null;
+				game = null;
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -24,7 +24,7 @@ public class GroupMemberDaoImpl extends GenericDaoImpl<GroupMember> implements I
 	public List<Object[]> getMembersInfoByGroup(long groupID) {
 		List<Object[]> list = new ArrayList<Object[]>();
 		Session session = getCurrentSession();
-		String queryStr = "Select u.id, u.userID, u.name, u.city, u.country, gm.status from GroupMember gm "
+		String queryStr = "Select u.id, u.userID, u.name, u.city, u.country, gm.status, u.status, u.updated from GroupMember gm "
 				+ " join gm.group g join gm.member u where g.groupID = :gid";
 		Query query = session.createQuery(queryStr);
 		query.setParameter("gid", groupID);
