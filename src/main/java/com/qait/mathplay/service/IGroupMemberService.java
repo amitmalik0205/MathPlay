@@ -21,4 +21,6 @@ public interface IGroupMemberService {
 	public Long getInvitationCount(String userID);
 	
 	public void saveOrUpdate(GroupMember member);
+	
+	public List<GroupMemberInfoDTO> getOnlineMembersInfoByGroup(long groupID);
 }

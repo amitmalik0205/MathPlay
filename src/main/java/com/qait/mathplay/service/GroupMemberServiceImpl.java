@@ -3,8 +3,10 @@ package com.qait.mathplay.service;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.qait.mathlay.enums.MemberStatus;
@@ -19,6 +21,10 @@ public class GroupMemberServiceImpl implements IGroupMemberService {
 
 	@Autowired
 	private IGroupMemberDao groupMemberDao;
+	
+	@Autowired
+	@Qualifier("msgConfig")
+	private Properties msgConfig;
 
 	@Override
 	public void saveMember(GroupMember member) {
@@ -38,11 +44,7 @@ public class GroupMemberServiceImpl implements IGroupMemberService {
 			dto.setCity((String) objArr[3]);
 			dto.setCountry((String) objArr[4]);
 			dto.setStatus((MemberStatus) objArr[5]);			
-			if ((new Date().getTime()) - ((Date) objArr[7]).getTime() > 10000) {
-				dto.setUserStatus(USER_STATUS_TYPE.OFFLINE);
-			} else {
-				dto.setUserStatus(USER_STATUS_TYPE.ONLINE);
-			}
+			
 			membersInfoList.add(dto);
 		}
 		return membersInfoList;
@@ -71,5 +73,28 @@ public class GroupMemberServiceImpl implements IGroupMemberService {
 	@Override
 	public void saveOrUpdate(GroupMember member) {
 		groupMemberDao.saveOrUpdate(member);
+	}
+	
+	@Override
+	public List<GroupMemberInfoDTO> getOnlineMembersInfoByGroup(long groupID) {
+		List<GroupMemberInfoDTO> membersInfoList = new ArrayList<GroupMemberInfoDTO>();
+		List<Object[]> list = groupMemberDao.getMembersInfoByGroup(groupID);
+		long onlineTimeInterval = new Long(msgConfig.getProperty("online.interval"));
+		
+		for (Object[] objArr : list) {			
+			if ((new Date().getTime()) - ((Date) objArr[6]).getTime() <= onlineTimeInterval) {				
+				GroupMemberInfoDTO dto = new GroupMemberInfoDTO();
+				dto.setUserKey((Long) objArr[0]);
+				dto.setUserID((String) objArr[1]);
+				dto.setName((String) objArr[2]);
+				dto.setCity((String) objArr[3]);
+				dto.setCountry((String) objArr[4]);
+				dto.setStatus((MemberStatus) objArr[5]);
+				dto.setUserStatus(USER_STATUS_TYPE.ONLINE);
+				
+				membersInfoList.add(dto);
+			}							
+		}
+		return membersInfoList;		
 	}
 }

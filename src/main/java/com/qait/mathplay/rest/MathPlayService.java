@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.qait.mathlay.enums.MemberStatus;
+import com.qait.mathlay.enums.USER_STATUS_TYPE;
 import com.qait.mathplay.dao.domain.Game;
 import com.qait.mathplay.dao.domain.GameDetails;
 import com.qait.mathplay.dao.domain.Group;
@@ -470,11 +471,11 @@ public class MathPlayService {
 	}
 
 	@GET
-	@Path("friend-list")
+	@Path("friend-list/{userID}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional
-	public Response getFriendList(@QueryParam("userID") String userId) {
+	public Response getFriendList(@PathParam("userID") String userId) {
 
 		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
 		List<GroupMemberInfoDTO> membersInfoList = new ArrayList<>();
@@ -482,15 +483,41 @@ public class MathPlayService {
 			List<GroupDTO> groupList = new ArrayList<GroupDTO>();
 			groupList = groupService.getGroupListForMemberAndAdmin(userId);
 
-			for (GroupDTO group : groupList) {
-				membersInfoList.addAll(memberService
-						.getMembersInfoByGroup(group.getGroupID()));
+			for (GroupDTO groupDto : groupList) {	
+				
+				//If user is group owner then all group members are friends
+				//Otherwise only group owner is friend
+				if(groupDto.getOwnerUserID().equals(userId)) {					
+					List<GroupMemberInfoDTO> allMembersList = memberService.getOnlineMembersInfoByGroup(groupDto.getGroupID());
+					
+					//Remove user himself from friend list
+					for(GroupMemberInfoDTO dto : allMembersList) {
+						if(!dto.getUserID().equals(userId)) {
+							membersInfoList.add(dto);
+						}
+					}				
+				} else {
+					User groupOwner = groupService.getGroupOwner(groupDto.getGroupID());
+					long onlineTimeInterval = new Long(msgConfig.getProperty("online.interval"));
+					
+					if ((new Date().getTime()) - (groupOwner.getUpdated()).getTime() <= onlineTimeInterval) {
+						GroupMemberInfoDTO groupMemberInfoDTO = new GroupMemberInfoDTO();
+						groupMemberInfoDTO.setUserStatus(USER_STATUS_TYPE.ONLINE);
+						groupMemberInfoDTO.setUserID(groupOwner.getUserID());
+						groupMemberInfoDTO.setUserKey(groupOwner.getId());
+						groupMemberInfoDTO.setName(groupOwner.getName());
+						groupMemberInfoDTO.setCountry(groupOwner.getCountry());
+						groupMemberInfoDTO.setCity(groupOwner.getCity());	
+						
+						membersInfoList.add(groupMemberInfoDTO);
+					} 								
+				}
 			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			response.setCode("getOwnerGroupList001");
-			response.setMessage(msgConfig.getProperty("getOwnerGroupList001"));
+			response.setCode("getFriendList001");
+			response.setMessage(msgConfig.getProperty("getFriendList001"));
 			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
 			throw new WebApplicationException(Response.ok(response).build());
 		}
@@ -498,11 +525,11 @@ public class MathPlayService {
 	}
 
 	@GET
-	@Path("update-my-status")
+	@Path("update-my-status/{userID}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	@Transactional
-	public Response updateStatus(@QueryParam("userID") String userId) {
+	@Transactional(rollbackFor = Exception.class)
+	public Response updateStatus(@PathParam("userID") String userId) {
 
 		MathPlayNLearnServiceResponse response = new MathPlayNLearnServiceResponse();
 		List<GroupMemberInfoDTO> membersInfoList = new ArrayList<>();
@@ -515,15 +542,41 @@ public class MathPlayService {
 			List<GroupDTO> groupList = new ArrayList<GroupDTO>();
 			groupList = groupService.getGroupListForMemberAndAdmin(userId);
 
-			for (GroupDTO group : groupList) {
-				membersInfoList.addAll(memberService
-						.getMembersInfoByGroup(group.getGroupID()));
+			for (GroupDTO groupDto : groupList) {	
+				
+				//If user is group owner then all group members are friends
+				//Otherwise only group owner is friend
+				if(groupDto.getOwnerUserID().equals(userId)) {					
+					List<GroupMemberInfoDTO> allMembersList = memberService.getOnlineMembersInfoByGroup(groupDto.getGroupID());
+					
+					//Remove user himself from friend list
+					for(GroupMemberInfoDTO dto : allMembersList) {
+						if(!dto.getUserID().equals(userId)) {
+							membersInfoList.add(dto);
+						}
+					}				
+				} else {
+					User groupOwner = groupService.getGroupOwner(groupDto.getGroupID());
+					long onlineTimeInterval = new Long(msgConfig.getProperty("online.interval"));
+					
+					if ((new Date().getTime()) - (groupOwner.getUpdated()).getTime() <= onlineTimeInterval) {
+						GroupMemberInfoDTO groupMemberInfoDTO = new GroupMemberInfoDTO();
+						groupMemberInfoDTO.setUserStatus(USER_STATUS_TYPE.ONLINE);
+						groupMemberInfoDTO.setUserID(groupOwner.getUserID());
+						groupMemberInfoDTO.setUserKey(groupOwner.getId());
+						groupMemberInfoDTO.setName(groupOwner.getName());
+						groupMemberInfoDTO.setCountry(groupOwner.getCountry());
+						groupMemberInfoDTO.setCity(groupOwner.getCity());
+						
+						membersInfoList.add(groupMemberInfoDTO);
+					} 								
+				}
 			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			response.setCode("getOwnerGroupList001");
-			response.setMessage(msgConfig.getProperty("getOwnerGroupList001"));
+			response.setCode("updateMyStatus001");
+			response.setMessage(msgConfig.getProperty("updateMyStatus001"));
 			logger.fatal(MathPlayNLearnUtil.getExceptionDescriptionString(e));
 			throw new WebApplicationException(Response.ok(response).build());
 		}

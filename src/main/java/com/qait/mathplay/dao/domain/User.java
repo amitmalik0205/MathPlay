@@ -68,6 +68,7 @@ public class User implements Serializable {
 	private Set<Notification> notifications = new HashSet<Notification>();
 
 	@Column(name = "updated")
+	//@Temporal(TemporalType.TIMESTAMP)
 	private Date updated;
 
 	public Date getUpdated() {
